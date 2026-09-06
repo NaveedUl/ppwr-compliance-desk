@@ -1,0 +1,1978 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>PPWR Compliance Desk</title>
+<style>
+  :root{
+    --ink:#1E2A33;
+    --ink-soft:#5B6470;
+    --paper:#F6F4EF;
+    --card:#FFFFFF;
+    --line:#DAD4C6;
+    --line-soft:#E8E4DA;
+    --accent:#2F5D7C;
+    --accent-hover:#254A63;
+    --accent-soft:#E4ECF1;
+    --ok:#3F7A5C;
+    --ok-bg:#E7F0EA;
+    --warn:#B8843A;
+    --warn-bg:#FBF1E1;
+    --danger:#B14343;
+    --danger-bg:#FBEAEA;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --serif: Georgia, "Iowan Old Style", "Times New Roman", serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:var(--sans); background:var(--paper); color:var(--ink); font-size:14px;}
+  button{font-family:inherit; cursor:pointer;}
+  input, select, textarea{font-family:inherit; font-size:13.5px; color:var(--ink);}
+
+  #app{display:flex; min-height:100vh;}
+
+  /* Sidebar */
+  .sidebar{
+    width:220px; flex:0 0 220px; background:var(--ink); color:#EDEFF1;
+    display:flex; flex-direction:column; padding:22px 16px;
+  }
+  .brand{margin-bottom:26px;}
+  .brand-title{font-size:16px; font-weight:600; letter-spacing:.2px;}
+  .brand-sub{font-size:11.5px; color:#9FB0BD; margin-top:4px; line-height:1.4;}
+  .nav{display:flex; flex-direction:column; gap:2px;}
+  .nav-btn{
+    text-align:left; background:none; border:none; color:#C7D0D8; padding:10px 12px;
+    border-radius:7px; font-size:13.5px; display:flex; align-items:center; gap:9px;
+  }
+  .nav-btn:hover{background:rgba(255,255,255,.06); color:#fff;}
+  .nav-btn.active{background:var(--accent); color:#fff;}
+  .nav-dot{width:6px; height:6px; border-radius:50%; background:currentColor; opacity:.55; flex:0 0 auto;}
+  .sidebar-foot{margin-top:auto; font-size:11px; color:#7C8D9A; line-height:1.5; padding-top:16px; border-top:1px solid rgba(255,255,255,.08);}
+
+  /* Main */
+  main{flex:1; min-width:0; padding:28px 32px 60px; max-width:1500px;}
+  .tab{display:none;}
+  .tab.active{display:block;}
+  .page-head{margin-bottom:22px;}
+  .page-title{font-size:20px; font-weight:600; margin:0 0 4px;}
+  .page-desc{color:var(--ink-soft); font-size:13.5px; margin:0; max-width:640px; line-height:1.5;}
+
+  /* Buttons */
+  .btn{
+    background:var(--accent); color:#fff; border:none; padding:9px 15px; border-radius:7px;
+    font-size:13px; font-weight:500; display:inline-flex; align-items:center; gap:6px;
+  }
+  .btn:hover{background:var(--accent-hover);}
+  .btn.secondary{background:var(--card); color:var(--ink); border:1px solid var(--line);}
+  .btn.secondary:hover{background:var(--accent-soft); border-color:var(--accent);}
+  .btn.ghost{background:none; color:var(--accent); padding:6px 8px;}
+  .btn.ghost:hover{background:var(--accent-soft);}
+  .btn.danger{background:var(--card); color:var(--danger); border:1px solid #EBD2D2;}
+  .btn.danger:hover{background:var(--danger-bg);}
+  .btn.small{padding:6px 10px; font-size:12px;}
+  .btn:disabled{opacity:.45; cursor:not-allowed;}
+
+  /* ===== Generate tab ===== */
+  .profile-bar{
+    background:var(--card); border:1px solid var(--line); border-radius:10px;
+    padding:14px 16px; margin-bottom:18px; display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+  }
+  .profile-bar-text{font-size:12.5px; color:var(--ink-soft); flex:1; min-width:200px;}
+  .profile-bar-text b{color:var(--ink);}
+
+  .generate-grid{display:grid; grid-template-columns:minmax(360px, 460px) 1fr; gap:22px; align-items:start;}
+
+  .form-panel{
+    background:var(--card); border:1px solid var(--line); border-radius:10px;
+    max-height:calc(100vh - 160px); overflow-y:auto; padding:4px 0;
+  }
+  .form-toolbar{
+    position:sticky; top:0; background:var(--card); border-bottom:1px solid var(--line);
+    padding:12px 18px; display:flex; gap:8px; flex-wrap:wrap; z-index:2;
+  }
+  .fgroup{padding:16px 18px; border-bottom:1px solid var(--line-soft);}
+  .fgroup:last-child{border-bottom:none;}
+  .fgroup-title{font-size:11.5px; font-weight:700; color:var(--accent); text-transform:uppercase; letter-spacing:.5px; margin:0 0 3px;}
+  .fgroup-sub{font-size:11.5px; color:var(--ink-soft); margin:0 0 12px;}
+  .field{margin-bottom:12px;}
+  .field label{display:block; font-size:12px; color:var(--ink-soft); margin-bottom:4px;}
+  .field input[type=text], .field input[type=date], .field input[type=email],
+  .field input[type=tel], .field input[type=number], .field input[type=password], .field select, .field textarea{
+    width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:6px; background:#fff;
+  }
+  .field textarea{resize:vertical; min-height:52px;}
+  .field input:focus, .field select:focus, .field textarea:focus{outline:2px solid var(--accent-soft); border-color:var(--accent);}
+  .field-row{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  .radio-row{display:flex; gap:16px; margin-top:2px;}
+  .radio-row label{display:flex; align-items:center; gap:6px; font-size:13px; color:var(--ink); margin:0;}
+
+  .art-row{border:1px solid var(--line); border-radius:8px; padding:10px 12px; margin-bottom:8px; background:#FBFAF7;}
+  .art-row-top{display:flex; justify-content:space-between; gap:8px; align-items:baseline; margin-bottom:6px;}
+  .art-code{font-weight:700; font-size:12.5px; color:var(--accent);}
+  .art-req{font-size:11.8px; color:var(--ink-soft); line-height:1.4; margin-bottom:8px;}
+  .art-controls{display:flex; gap:8px;}
+  .art-controls select{flex:1;}
+  .art-controls input{width:110px; flex:0 0 110px;}
+
+  .std-row{display:grid; grid-template-columns:1fr 1.6fr auto; gap:8px; margin-bottom:8px; align-items:center;}
+  .icon-btn{
+    width:28px; height:28px; border-radius:6px; border:1px solid var(--line); background:#fff;
+    display:flex; align-items:center; justify-content:center; color:var(--ink-soft); flex:0 0 auto;
+  }
+  .icon-btn:hover{background:var(--danger-bg); color:var(--danger); border-color:#EBD2D2;}
+
+  .check-inline{display:flex; align-items:center; gap:8px; font-size:13px;}
+
+  /* Preview / paper document */
+  .preview-panel{position:sticky; top:20px;}
+  .preview-toolbar{display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;}
+  .preview-toolbar .status-chip{font-size:11.5px; color:var(--ink-soft);}
+  .doc-shell{
+    background:#DCD8CC; border-radius:10px; padding:20px; max-height:calc(100vh - 200px); overflow-y:auto;
+  }
+  .doc-page{
+    background:#fff; width:100%; max-width:600px; margin:0 auto 22px; padding:36px 34px;
+    font-family:var(--serif); color:#20242A; box-shadow:0 3px 14px rgba(0,0,0,.14); border-radius:2px;
+    font-size:12.3px; line-height:1.5;
+  }
+  .doc-page:last-child{margin-bottom:0;}
+  .doc-masthead{display:flex; justify-content:space-between; align-items:flex-start; border-bottom:2px solid #20242A; padding-bottom:10px; margin-bottom:14px;}
+  .doc-masthead h1{font-size:15.5px; margin:0 0 3px;}
+  .doc-masthead .sub{font-size:10.5px; color:#5B6470;}
+  .doc-masthead .pageno{font-size:10px; color:#5B6470; text-align:right; white-space:nowrap;}
+  .doc-metabar{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; font-size:10.3px; border:1px solid #20242A; padding:8px 10px; margin-bottom:16px;}
+  .doc-metabar div span{display:block; font-size:9px; text-transform:uppercase; letter-spacing:.4px; color:#5B6470; margin-bottom:2px;}
+  .doc-sec{margin-bottom:16px;}
+  .doc-sec-h{font-size:9.5px; text-transform:uppercase; letter-spacing:.5px; color:#5B6470; border-bottom:1px solid #C9C3B4; padding-bottom:3px; margin-bottom:8px;}
+  .doc-row{display:grid; grid-template-columns:38% 62%; gap:8px; padding:3px 0; border-bottom:1px dotted #D6D1C4;}
+  .doc-row:last-child{border-bottom:none;}
+  .doc-row .k{color:#5B6470; font-size:11px;}
+  .doc-row .v{font-size:12px;}
+  .doc-statement{font-size:12.3px; font-style:italic; line-height:1.6; padding:10px 12px; background:#FAF9F5; border-left:3px solid #20242A;}
+  table.doc-table{width:100%; border-collapse:collapse; font-size:10.6px; margin-top:6px;}
+  table.doc-table th, table.doc-table td{border:1px solid #C9C3B4; padding:5px 6px; text-align:left; vertical-align:top;}
+  table.doc-table th{background:#F1EEE6; font-weight:700; font-size:9.5px; text-transform:uppercase; letter-spacing:.3px;}
+  .tag{display:inline-block; font-size:9.5px; padding:1px 6px; border-radius:9px; font-weight:600;}
+  .tag.conform{background:#E7F0EA; color:#3F7A5C;}
+  .tag.na{background:#EEECE5; color:#6B6558;}
+  .tag.pending{background:#FBF1E1; color:#B8843A;}
+  .sig-block{display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-top:16px;}
+  .sig-line{border-top:1px solid #20242A; margin-top:34px; padding-top:4px; font-size:10px; color:#5B6470;}
+
+  /* ===== Tables (trackers) ===== */
+  .table-toolbar{display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:14px; flex-wrap:wrap;}
+  .search-box{position:relative;}
+  .search-box input{padding:8px 10px 8px 30px; border:1px solid var(--line); border-radius:7px; width:230px; background:#fff;}
+  .search-box::before{content:"⌕"; position:absolute; left:10px; top:50%; transform:translateY(-50%); color:var(--ink-soft); font-size:14px;}
+  .toolbar-actions{display:flex; gap:8px;}
+
+  .tracker-form{
+    background:var(--card); border:1px solid var(--accent); border-radius:10px; padding:16px 18px; margin-bottom:16px;
+  }
+  .tracker-form-title{font-size:13px; font-weight:600; margin:0 0 12px;}
+  .tracker-form-grid{display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-bottom:12px;}
+  .tracker-form-grid.wide{grid-template-columns:repeat(2,1fr);}
+  .tracker-form .field{margin-bottom:0;}
+  .tracker-form-actions{display:flex; gap:8px; justify-content:flex-end;}
+
+  .data-table-wrap{background:var(--card); border:1px solid var(--line); border-radius:10px; overflow:hidden;}
+  table.data-table{width:100%; border-collapse:collapse; font-size:13px;}
+  table.data-table th{
+    background:#FAF9F5; text-align:left; padding:10px 12px; font-size:11px; color:var(--ink-soft);
+    font-weight:600; border-bottom:1px solid var(--line); white-space:nowrap;
+  }
+  table.data-table td{padding:11px 12px; border-bottom:1px solid var(--line-soft); vertical-align:top;}
+  table.data-table tr:last-child td{border-bottom:none;}
+  table.data-table tr:hover td{background:#FAF9F5;}
+  .badge{display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:600; padding:3px 9px; border-radius:20px;}
+  .badge.ok{background:var(--ok-bg); color:var(--ok);}
+  .badge.warn{background:var(--warn-bg); color:var(--warn);}
+  .badge.danger{background:var(--danger-bg); color:var(--danger);}
+  .badge.muted{background:#EEECE5; color:#6B6558;}
+  .badge.info{background:var(--accent-soft); color:var(--accent);}
+
+  .nav-badge{margin-left:auto; background:var(--danger); color:#fff; font-size:10.5px; font-weight:700; border-radius:10px; padding:1px 7px; line-height:1.5;}
+
+  .modal-backdrop{position:fixed; inset:0; background:rgba(20,24,28,.45); display:flex; align-items:center; justify-content:center; z-index:50; padding:24px;}
+  .modal-box{background:var(--card); border-radius:12px; max-width:640px; width:100%; max-height:86vh; overflow:auto; padding:22px 24px; box-shadow:0 12px 40px rgba(0,0,0,.25);}
+  .modal-box h3{margin:0 0 4px;}
+  .email-meta{font-size:12.5px; color:var(--ink-soft); margin-bottom:14px; line-height:1.6;}
+  .email-body-quote{background:var(--paper); border:1px solid var(--line-soft); border-radius:8px; padding:12px 14px; font-size:13px; white-space:pre-wrap; max-height:180px; overflow:auto; margin-bottom:16px; color:var(--ink-soft);}
+  .settings-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px 16px;}
+  .settings-note{font-size:12px; color:var(--ink-soft); line-height:1.6; background:var(--warn-bg); border:1px solid #EAD9B8; border-radius:8px; padding:10px 12px; margin-top:10px;}
+  .test-result{font-size:12.5px; margin-top:8px; padding:8px 10px; border-radius:7px;}
+  .test-result.ok{background:var(--ok-bg); color:var(--ok);}
+  .test-result.fail{background:var(--danger-bg); color:var(--danger);}
+  .row-actions{display:flex; gap:6px;}
+  .empty-state{padding:50px 20px; text-align:center; color:var(--ink-soft);}
+  .empty-state .big{font-size:28px; margin-bottom:8px;}
+  .notes-cell{max-width:180px; color:var(--ink-soft); font-size:12.3px;}
+  .muted-small{color:var(--ink-soft); font-size:12px;}
+
+  /* ===== Dashboard ===== */
+  .stat-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:24px;}
+  .stat-card{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px 18px;}
+  .stat-num{font-size:26px; font-weight:700; line-height:1;}
+  .stat-label{font-size:12px; color:var(--ink-soft); margin-top:6px;}
+  .dash-cols{display:grid; grid-template-columns:1.2fr 1fr; gap:18px; align-items:start;}
+  .panel{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px 18px;}
+  .panel h3{font-size:13.5px; margin:0 0 12px;}
+  .bar-row{display:flex; align-items:center; gap:10px; margin-bottom:10px; font-size:12.5px;}
+  .bar-label{width:110px; flex:0 0 110px; color:var(--ink-soft);}
+  .bar-track{flex:1; background:#F0EEE7; border-radius:6px; height:9px; overflow:hidden;}
+  .bar-fill{height:100%; border-radius:6px;}
+  .bar-count{width:26px; text-align:right; font-weight:600;}
+  .activity-item{display:flex; gap:10px; padding:9px 0; border-bottom:1px solid var(--line-soft); font-size:12.6px;}
+  .activity-item:last-child{border-bottom:none;}
+  .activity-dot{width:7px; height:7px; border-radius:50%; margin-top:5px; flex:0 0 auto;}
+
+  @media (max-width: 1050px){
+    .generate-grid{grid-template-columns:1fr;}
+    .preview-panel{position:static;}
+    .stat-grid{grid-template-columns:repeat(2,1fr);}
+    .dash-cols{grid-template-columns:1fr;}
+    .tracker-form-grid{grid-template-columns:1fr 1fr;}
+  }
+  @media (max-width: 720px){
+    #app{flex-direction:column;}
+    .sidebar{width:100%; flex-direction:row; align-items:center; flex-wrap:wrap; padding:14px 16px;}
+    .brand{margin-bottom:0; margin-right:16px;}
+    .nav{flex-direction:row; flex-wrap:wrap;}
+    .sidebar-foot{display:none;}
+    main{padding:20px 16px 50px;}
+    .tracker-form-grid{grid-template-columns:1fr;}
+    .stat-grid{grid-template-columns:1fr 1fr;}
+  }
+
+  @media print{
+    body *{visibility:hidden;}
+    #print-area, #print-area *{visibility:visible;}
+    #print-area{position:absolute; top:0; left:0; width:100%; margin:0; padding:0;}
+    .doc-page{box-shadow:none; max-width:100%; page-break-after:always; margin:0; border-radius:0;}
+    .doc-shell{background:#fff; padding:0; max-height:none; overflow:visible;}
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-title">Compliance Desk</div>
+      <div class="brand-sub">PPWR · Regulation (EU) 2025/40</div>
+    </div>
+    <nav class="nav">
+      <button class="nav-btn active" data-tab="generate"><span class="nav-dot"></span>Generate DoC</button>
+      <button class="nav-btn" data-tab="library"><span class="nav-dot"></span>Document Library</button>
+      <button class="nav-btn" data-tab="customers"><span class="nav-dot"></span>Customer Requests</button>
+      <button class="nav-btn" data-tab="suppliers"><span class="nav-dot"></span>Supplier Tracker</button>
+      <button class="nav-btn" data-tab="email"><span class="nav-dot"></span>Email Inbox<span class="nav-badge" id="email-nav-badge" style="display:none;"></span></button>
+      <button class="nav-btn" data-tab="dashboard"><span class="nav-dot"></span>Dashboard</button>
+    </nav>
+    <div class="sidebar-foot">
+      <div id="storage-status" style="margin-bottom:10px;">Checking storage…</div>
+      <button class="btn secondary small" id="btn-backup-export" style="width:100%; margin-bottom:6px; justify-content:center;">Export backup (.json)</button>
+      <button class="btn secondary small" id="btn-backup-import" style="width:100%; justify-content:center;">Import backup</button>
+      <input type="file" id="backup-file-input" accept="application/json" style="display:none;">
+    </div>
+  </aside>
+
+  <main>
+    <!-- ================= GENERATE TAB ================= -->
+    <section class="tab active" id="tab-generate">
+      <div class="page-head">
+        <h1 class="page-title">Generate a Declaration of Conformity</h1>
+        <p class="page-desc">Fill in the fields on the left. The document on the right updates as you type, laid out to match the Annex VIII template.</p>
+      </div>
+
+      <div class="profile-bar" id="profile-bar"></div>
+
+      <div class="generate-grid">
+        <div class="form-panel">
+          <div class="form-toolbar">
+            <button class="btn secondary small" id="btn-new-doc">+ New document</button>
+            <button class="btn small" id="btn-save-doc">Save to library</button>
+            <button class="btn secondary small" id="btn-print-doc">Print / Save as PDF</button>
+          </div>
+          <div id="doc-form"></div>
+        </div>
+
+        <div class="preview-panel">
+          <div class="preview-toolbar">
+            <span class="status-chip" id="completeness-chip"></span>
+          </div>
+          <div class="doc-shell">
+            <div id="print-area">
+              <div id="doc-preview"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= LIBRARY TAB ================= -->
+    <section class="tab" id="tab-library">
+      <div class="page-head">
+        <h1 class="page-title">Document Library</h1>
+        <p class="page-desc">Every Declaration of Conformity you've saved, ready to reopen, duplicate for a new SKU, or hand to a customer.</p>
+      </div>
+      <div class="table-toolbar">
+        <div class="search-box"><input type="text" id="library-search" placeholder="Search by SKU, trade name or company…"></div>
+      </div>
+      <div class="data-table-wrap"><div id="library-table"></div></div>
+    </section>
+
+    <!-- ================= CUSTOMERS TAB ================= -->
+    <section class="tab" id="tab-customers">
+      <div class="page-head">
+        <h1 class="page-title">Customer Requests</h1>
+        <p class="page-desc">Track every customer request for a Declaration of Conformity, from ask to delivery.</p>
+      </div>
+      <div class="table-toolbar">
+        <div class="search-box"><input type="text" id="customer-search" placeholder="Search customer or SKU…"></div>
+        <div class="toolbar-actions">
+          <button class="btn secondary small" id="btn-export-customers">Export CSV</button>
+          <button class="btn small" id="btn-add-customer">+ New request</button>
+        </div>
+      </div>
+      <div id="customer-form-wrap"></div>
+      <div class="data-table-wrap"><div id="customer-table"></div></div>
+    </section>
+
+    <!-- ================= SUPPLIERS TAB ================= -->
+    <section class="tab" id="tab-suppliers">
+      <div class="page-head">
+        <h1 class="page-title">Supplier Documentation Tracker</h1>
+        <p class="page-desc">Log what each supplier has sent, check it off as complete, and keep a record of every follow-up.</p>
+      </div>
+      <div class="table-toolbar">
+        <div class="search-box"><input type="text" id="supplier-search" placeholder="Search supplier or SKU…"></div>
+        <div class="toolbar-actions">
+          <button class="btn secondary small" id="btn-export-suppliers">Export CSV</button>
+          <button class="btn small" id="btn-add-supplier">+ New entry</button>
+        </div>
+      </div>
+      <div id="supplier-form-wrap"></div>
+      <div class="data-table-wrap"><div id="supplier-table"></div></div>
+    </section>
+
+    <!-- ================= EMAIL TAB ================= -->
+    <section class="tab" id="tab-email">
+      <div class="page-head">
+        <h1 class="page-title">Email Inbox</h1>
+        <p class="page-desc">Connect a mailbox over IMAP/SMTP, pull in incoming messages, and see which ones need a PPWR-related reply. Simple, template-matched requests can be auto-answered; everything else is drafted for you to review. Every relevant email also gets logged as an entry in Customer Requests automatically.</p>
+      </div>
+
+      <div class="panel" id="email-settings-panel" style="margin-bottom:18px;">
+        <div style="display:flex; align-items:center; justify-content:space-between; cursor:pointer;" id="email-settings-toggle">
+          <h3 style="margin:0;">Mailbox connection</h3>
+          <span class="btn ghost small" id="email-settings-caret">Show settings ▾</span>
+        </div>
+        <div id="email-settings-body" style="display:none; margin-top:14px;"></div>
+      </div>
+
+      <div class="table-toolbar">
+        <div class="search-box"><input type="text" id="email-search" placeholder="Search sender or subject…"></div>
+        <div class="toolbar-actions">
+          <label style="display:flex; align-items:center; gap:6px; font-size:12.5px; color:var(--ink-soft); margin-right:8px;">
+            <input type="checkbox" id="email-show-all"> Show all (incl. not PPWR-related)
+          </label>
+          <button class="btn secondary small" id="btn-email-config">Configure mailbox</button>
+          <button class="btn small" id="btn-email-check">Check for new emails</button>
+        </div>
+      </div>
+      <div id="email-check-status" class="muted-small" style="margin-bottom:10px;"></div>
+      <div class="data-table-wrap"><div id="email-table"></div></div>
+
+      <div class="panel" style="margin-top:18px;">
+        <h3>Recent email activity</h3>
+        <div id="email-activity-list"></div>
+      </div>
+    </section>
+
+    <!-- ================= DASHBOARD TAB ================= -->
+    <section class="tab" id="tab-dashboard">
+      <div class="page-head">
+        <h1 class="page-title">Dashboard</h1>
+        <p class="page-desc">A quick read on where things stand across documents, customers and suppliers.</p>
+      </div>
+      <div class="stat-grid" id="stat-grid"></div>
+      <div class="dash-cols">
+        <div class="panel">
+          <h3>Status breakdown</h3>
+          <div id="dash-bars"></div>
+        </div>
+        <div class="panel">
+          <h3>Recent activity</h3>
+          <div id="dash-activity"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+/* ============================================================
+   PPWR COMPLIANCE DESK
+   ============================================================ */
+
+const REQUIRED_ARTICLES = [
+  { code:"Art. 5(1)–(3)", req:"General restriction of substances of concern; substance use minimised consistent with intended function (from 12.08.2026).", opts:["conform"] },
+  { code:"Art. 5(4)", req:"Heavy metals: Σ (Pb + Cd + Hg + CrVI) ≤ 100 mg/kg per packaging component.", opts:["conform"] },
+  { code:"Art. 5(5)", req:"PFAS limits — food contact only: total PFAS < 50 mg/kg; per substance ≤ 25 µg/kg; sum ≤ 250 µg/kg.", opts:["conform","na"] },
+  { code:"Art. 6(1)–(2)", req:"Design for recycling per Annex II Table 1/2 material and product criteria (from 12.08.2026).", opts:["conform"] },
+  { code:"Art. 6(4) / Annex II Tbl 3", req:"Recyclability performance grade A (≥95%), B (≥80%) or C (≥70%) by weight; below Grade C not marketable from 01.01.2030.", opts:["conform"] },
+  { code:"Art. 6(4)", req:"Only Grade A or B packaging may be placed on the market from 01.01.2038.", opts:["conform","na"] },
+  { code:"Art. 6(5)–(6)", req:"Derogation for packaging with legally protected design/trademark or geographical indication registered before 11.02.2025 (transitional, to 12.08.2038).", opts:["na","conform"] },
+  { code:"Art. 6(9)", req:"Innovative-packaging derogation — materially new packaging granted up to 5 years from first placing on the market.", opts:["na","conform"] },
+  { code:"Art. 6(11)", req:"Composite packaging — recyclability assessed on the predominant material fraction.", opts:["conform","na"] },
+  { code:"Art. 7(1)–(2)", req:"Minimum recycled content in the plastic part of packaging, by material/application category (from 01.01.2030).", opts:["conform","na"] },
+  { code:"Art. 7(3)", req:"Increased minimum recycled-content thresholds apply (from 01.01.2040).", opts:["na","conform"] },
+  { code:"Art. 7(9)", req:"Recycled-content targets do not apply — compostable plastic, medicinal/medical-device contact, or other exempt packaging.", opts:["na","conform"] },
+  { code:"Art. 8", req:"Bio-based plastics — feedstock sustainability per Directive (EU) 2018/2001 (RED II).", opts:["conform","na"] },
+  { code:"Art. 9(1)", req:"Mandatory compostability — tea/coffee bags, fruit/veg stickers, very lightweight plastic carrier bags, single-portion coffee capsules (from 12.02.2028).", opts:["conform","na"] },
+  { code:"Art. 9(2)", req:"Member State option to require or exempt compostability for additional packaging formats.", opts:["na","conform"] },
+  { code:"Art. 10(1)", req:"Packaging minimisation — weight/volume limited to what is necessary; no false bottoms, double walls or misleading empty space (from 12.08.2026).", opts:["conform"] },
+  { code:"Art. 10(2) / Annex IV", req:"Compliance with Annex IV performance criteria (protection, handling, filling, transport/logistics efficiency, consumer safety).", opts:["conform"] },
+  { code:"Art. 11", req:"Reusable-packaging design criteria (a)–(i): durability, reparability, safe emptying/refilling/reconditioning, compatibility with a reuse system.", opts:["conform","na"] },
+  { code:"Art. 11(3)", req:"Integration into a functioning reuse system with defined collection, return and refill/reconditioning infrastructure.", opts:["conform","na"] },
+  { code:"Art. 12(1)", req:"Harmonised material-composition label based on pictograms, to facilitate consumer sorting (from 12.08.2028).", opts:["conform","na"] },
+  { code:"Art. 12(2)", req:"Reusable-packaging label — symbol identifying the packaging as reusable, incl. participating reuse system.", opts:["conform","na"] },
+  { code:"Art. 12(4)", req:"Voluntary recycled-content / bio-based-content label (harmonised from 12.08.2028).", opts:["na","conform"] },
+  { code:"Art. 13", req:"Digital data carrier (QR code or equivalent) linking to labelling and, where applicable, Digital Product Passport information.", opts:["conform","na"] },
+  { code:"Art. 24", req:"Maximum empty space ratio 50% for grouped, transport and e-commerce packaging (from 01.01.2030).", opts:["conform","na"] },
+  { code:"Art. 25 / Annex V", req:"Packaging is not in a format/use prohibited under Annex V (from 01.01.2030), e.g. single-use plastic grouped packaging, condiment portions, hotel miniatures, very lightweight carrier bags.", opts:["conform","na"] },
+  { code:"Art. 29", req:"Contributes to applicable re-use/refill targets for transport, e-commerce or beverage packaging, where in scope.", opts:["na","conform"] },
+  { code:"Art. 50", req:"Subject to a national deposit and return system for single-use plastic/metal beverage containers ≤ 3 L (phased from 01.01.2029).", opts:["na","conform"] },
+];
+
+const PACKAGING_TYPES = ["Sales packaging","Grouped packaging","Transport packaging","E-commerce packaging","Service packaging","Primary production packaging"];
+
+const RECYCLABILITY_GRADES = ["Not yet assessed","Grade A (≥95% by weight)","Grade B (≥80% by weight)","Grade C (≥70% by weight)","Below Grade C — not recyclable"];
+const RECYCLED_CONTENT_TARGET_YEARS = ["Not applicable","2030 target","2040 target"];
+const REUSE_TARGET_CATEGORIES = ["Not in scope of re-use targets","Transport packaging (Art. 29)","E-commerce packaging (Art. 29)","Reusable beverage packaging (Art. 29)"];
+const DEPOSIT_RETURN_OPTIONS = ["Not applicable","Yes — enrolled","Not yet in force in destination Member State"];
+const ANNEX_V_STATUS_OPTIONS = ["Not a restricted format","Exempt — reason below","Restricted — do not place on market from 01.01.2030"];
+
+let state = {
+  tab: "generate",
+  doc: null,
+  library: [],
+  customers: [],
+  suppliers: [],
+  profile: null,
+};
+
+/* ---------- utilities ---------- */
+function uid(p){ return p + "_" + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function todayISO(){ return new Date().toISOString().slice(0,10); }
+function esc(s){ return (s==null?"":String(s)).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function fmtDate(iso){
+  if(!iso) return "—";
+  const d = new Date(iso + "T00:00:00");
+  if(isNaN(d)) return iso;
+  return d.toLocaleDateString("en-GB", { day:"2-digit", month:"short", year:"numeric" });
+}
+function daysUntil(iso){
+  if(!iso) return null;
+  const d = new Date(iso + "T00:00:00"), now = new Date(todayISO() + "T00:00:00");
+  return Math.round((d - now) / 86400000);
+}
+
+const LOCAL_PREFIX = "ppwr-compliance-desk:";
+let BACKEND_AVAILABLE = null; // null = unknown, true/false once checked
+
+async function backendAvailable(){
+  if(BACKEND_AVAILABLE !== null) return BACKEND_AVAILABLE;
+  try{
+    const r = await fetch("/api/ping", { method:"GET" });
+    BACKEND_AVAILABLE = r.ok;
+  }catch(e){
+    BACKEND_AVAILABLE = false;
+  }
+  return BACKEND_AVAILABLE;
+}
+
+async function storageGet(key, fallback, shared=false){
+  try{
+    if(await backendAvailable()){
+      const r = await fetch(`/api/storage/get?key=${encodeURIComponent(key)}&shared=${shared}`);
+      if(r.status === 404) return fallback;
+      if(!r.ok) throw new Error("backend get failed: " + r.status);
+      const data = await r.json();
+      return data.value == null ? fallback : JSON.parse(data.value);
+    }
+    if(window.storage && typeof window.storage.get === "function"){
+      const r = await window.storage.get(key, shared);
+      if(!r || r.value == null) return fallback;
+      return JSON.parse(r.value);
+    }
+    const raw = localStorage.getItem(LOCAL_PREFIX + key);
+    if(raw == null) return fallback;
+    return JSON.parse(raw);
+  }catch(e){
+    console.error("Storage read failed", e);
+    return fallback;
+  }
+}
+async function storageSet(key, value, shared=false){
+  try{
+    if(await backendAvailable()){
+      const r = await fetch("/api/storage/set", {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify({ key, value: JSON.stringify(value), shared })
+      });
+      if(!r.ok) throw new Error("backend set failed: " + r.status);
+      return true;
+    }
+    if(window.storage && typeof window.storage.set === "function"){
+      await window.storage.set(key, JSON.stringify(value), shared);
+      return true;
+    }
+    localStorage.setItem(LOCAL_PREFIX + key, JSON.stringify(value));
+    return true;
+  }catch(e){
+    console.error("Storage save failed", e);
+    return false;
+  }
+}
+
+/* ---------- document model ---------- */
+function emptyDoc(){
+  const p = state.profile || {};
+  return {
+    id: uid("doc"),
+    documentNo: "DOC-" + Date.now().toString().slice(-7),
+    issueDate: todayISO(),
+    revision: "1.0",
+    tradeDesignation: "",
+    sku: "",
+    companyName: p.companyName || "",
+    registeredAddress: p.registeredAddress || "",
+    vatId: p.vatId || "",
+    contactEmail: p.contactEmail || "",
+    contactPhone: p.contactPhone || "",
+    nonEuName: "",
+    nonEuAddress: "",
+    packagingType: PACKAGING_TYPES[0],
+    typeOfUse: "Single-use",
+    foodContact: "No",
+    otherLegislation: "",
+    articles: REQUIRED_ARTICLES.map(() => ({ status:"pending", tdRef:"" })),
+    remarks: "",
+    dimensions: "",
+    totalWeight: "",
+    mainMaterials: "",
+    components: "",
+    filledProducts: "",
+    standards: [],
+    recyclabilityGrade: RECYCLABILITY_GRADES[0],
+    recyclablePercent: "",
+    recycledContentPercent: "",
+    recycledContentTargetYear: RECYCLED_CONTENT_TARGET_YEARS[0],
+    emptySpaceRatio: "",
+    reuseTargetCategory: REUSE_TARGET_CATEGORIES[0],
+    reuseSystemName: "",
+    reuseSystemOperator: "",
+    depositReturnApplicable: DEPOSIT_RETURN_OPTIONS[0],
+    annexVFormatStatus: ANNEX_V_STATUS_OPTIONS[0],
+    annexVExemptionReason: "",
+    eprRegistrationNo: "",
+    eprMemberStates: "",
+    eprAuthorisedRep: "",
+    digitalMarkingRef: "",
+    notifiedBodyApplies: false,
+    notifiedBodyName: "",
+    notifiedBodyAction: "",
+    certificatesIssued: "",
+    placeOfIssue: "",
+    dateOfIssue: todayISO(),
+    signatoryName: "",
+    signatoryFunction: "",
+    includeStamp: false,
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+  };
+}
+
+const FIELD_IDS = ["documentNo","issueDate","revision","tradeDesignation","sku","companyName","registeredAddress",
+  "vatId","contactEmail","contactPhone","nonEuName","nonEuAddress","packagingType","otherLegislation","remarks",
+  "dimensions","totalWeight","mainMaterials","components","filledProducts","notifiedBodyName","notifiedBodyAction",
+  "certificatesIssued","placeOfIssue","dateOfIssue","signatoryName","signatoryFunction",
+  "recyclabilityGrade","recyclablePercent","recycledContentPercent","recycledContentTargetYear","emptySpaceRatio",
+  "reuseTargetCategory","reuseSystemName","reuseSystemOperator","depositReturnApplicable",
+  "annexVFormatStatus","annexVExemptionReason","eprRegistrationNo","eprMemberStates","eprAuthorisedRep","digitalMarkingRef"];
+
+/* ============================================================
+   TAB NAVIGATION
+   ============================================================ */
+document.querySelectorAll(".nav-btn").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    document.querySelectorAll(".nav-btn").forEach(b=>b.classList.remove("active"));
+    document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById("tab-" + btn.dataset.tab).classList.add("active");
+    state.tab = btn.dataset.tab;
+    if(state.tab === "library") renderLibraryTab();
+    if(state.tab === "customers") renderCustomerTab();
+    if(state.tab === "suppliers") renderSupplierTab();
+    if(state.tab === "email") renderEmailTab();
+    if(state.tab === "dashboard") renderDashboard();
+  });
+});
+
+/* ============================================================
+   GENERATE TAB — FORM
+   ============================================================ */
+function renderProfileBar(){
+  const p = state.profile;
+  const bar = document.getElementById("profile-bar");
+  if(p && p.companyName){
+    bar.innerHTML = `
+      <div class="profile-bar-text">Saved issuer profile: <b>${esc(p.companyName)}</b> — new documents will start pre-filled with these details.</div>
+      <button class="btn secondary small" id="btn-edit-profile">Edit profile</button>
+    `;
+  } else {
+    bar.innerHTML = `
+      <div class="profile-bar-text">No saved issuer profile yet. Save your company details once so every new document starts pre-filled.</div>
+      <button class="btn secondary small" id="btn-edit-profile">Set up profile</button>
+    `;
+  }
+  document.getElementById("btn-edit-profile").addEventListener("click", openProfileEditor);
+}
+
+function openProfileEditor(){
+  const p = state.profile || {};
+  const wrap = document.getElementById("profile-bar");
+  wrap.innerHTML = `
+    <div style="width:100%;">
+      <div class="tracker-form-grid wide" style="margin-bottom:10px;">
+        <div class="field"><label>Company name</label><input type="text" id="pf-name" value="${esc(p.companyName||"")}"></div>
+        <div class="field"><label>VAT / commercial register ID</label><input type="text" id="pf-vat" value="${esc(p.vatId||"")}"></div>
+      </div>
+      <div class="field" style="margin-bottom:10px;"><label>Registered address</label><input type="text" id="pf-address" value="${esc(p.registeredAddress||"")}"></div>
+      <div class="tracker-form-grid wide" style="margin-bottom:10px;">
+        <div class="field"><label>Compliance contact email</label><input type="email" id="pf-email" value="${esc(p.contactEmail||"")}"></div>
+        <div class="field"><label>Contact phone</label><input type="text" id="pf-phone" value="${esc(p.contactPhone||"")}"></div>
+      </div>
+      <div class="tracker-form-actions">
+        <button class="btn secondary small" id="pf-cancel">Cancel</button>
+        <button class="btn small" id="pf-save">Save profile</button>
+      </div>
+    </div>
+  `;
+  document.getElementById("pf-cancel").addEventListener("click", renderProfileBar);
+  document.getElementById("pf-save").addEventListener("click", async ()=>{
+    state.profile = {
+      companyName: document.getElementById("pf-name").value.trim(),
+      vatId: document.getElementById("pf-vat").value.trim(),
+      registeredAddress: document.getElementById("pf-address").value.trim(),
+      contactEmail: document.getElementById("pf-email").value.trim(),
+      contactPhone: document.getElementById("pf-phone").value.trim(),
+    };
+    await storageSet("issuer-profile", state.profile, false);
+    renderProfileBar();
+  });
+}
+
+function formHTML(d){
+  return `
+    <div class="fgroup">
+      <p class="fgroup-title">Header</p>
+      <div class="field-row">
+        <div class="field"><label>Document no.</label><input type="text" data-f="documentNo" value="${esc(d.documentNo)}"></div>
+        <div class="field"><label>Revision</label><input type="text" data-f="revision" value="${esc(d.revision)}"></div>
+      </div>
+      <div class="field"><label>Issue date</label><input type="date" data-f="issueDate" value="${esc(d.issueDate)}"></div>
+    </div>
+
+    <div class="fgroup">
+      <p class="fgroup-title">Annex VIII No. 1 — Description of packaging</p>
+      <div class="field"><label>Trade designation</label><input type="text" data-f="tradeDesignation" placeholder="e.g. 500 ml HDPE trigger bottle" value="${esc(d.tradeDesignation)}"></div>
+      <div class="field"><label>Internal article / SKU number</label><input type="text" data-f="sku" value="${esc(d.sku)}"></div>
+    </div>
+
+    <div class="fgroup">
+      <p class="fgroup-title">Annex VIII No. 2 — Issuer</p>
+      <div class="field"><label>Full company name</label><input type="text" data-f="companyName" value="${esc(d.companyName)}"></div>
+      <div class="field"><label>Registered address</label><input type="text" data-f="registeredAddress" placeholder="Street, postal code, city, country" value="${esc(d.registeredAddress)}"></div>
+      <div class="field-row">
+        <div class="field"><label>Commercial register / VAT ID</label><input type="text" data-f="vatId" value="${esc(d.vatId)}"></div>
+        <div class="field"><label>Contact email</label><input type="email" data-f="contactEmail" value="${esc(d.contactEmail)}"></div>
+      </div>
+      <div class="field"><label>Contact phone</label><input type="tel" data-f="contactPhone" value="${esc(d.contactPhone)}"></div>
+      <p class="fgroup-sub" style="margin-top:10px;">If the manufacturer is outside the EU (optional):</p>
+      <div class="field"><label>Name</label><input type="text" data-f="nonEuName" value="${esc(d.nonEuName)}"></div>
+      <div class="field"><label>Address</label><input type="text" data-f="nonEuAddress" value="${esc(d.nonEuAddress)}"></div>
+    </div>
+
+    <div class="fgroup">
+      <p class="fgroup-title">Annex VIII No. 4 — Subject of the declaration</p>
+      <div class="field">
+        <label>Type of packaging (Art. 3 PPWR)</label>
+        <select data-f="packagingType">
+          ${PACKAGING_TYPES.map(t=>`<option value="${esc(t)}" ${d.packagingType===t?"selected":""}>${esc(t)}</option>`).join("")}
+        </select>
+      </div>
+      <div class="field">
+        <label>Type of use</label>
+        <div class="radio-row">
+          <label><input type="radio" name="typeOfUse" value="Single-use" ${d.typeOfUse==="Single-use"?"checked":""}> Single-use</label>
+          <label><input type="radio" name="typeOfUse" value="Reusable" ${d.typeOfUse==="Reusable"?"checked":""}> Reusable</label>
+        </div>
+      </div>
+      <div class="field">
+        <label>Food contact</label>
+        <div class="radio-row">
+          <label><input type="radio" name="foodContact" value="Yes" ${d.foodContact==="Yes"?"checked":""}> Yes</label>
+          <label><input type="radio" name="foodContact" value="No" ${d.foodContact==="No"?"checked":""}> No</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="fgroup">
+      <p class="fgroup-title">Annex VIII No. 5 — Applied harmonisation legislation</p>
+      <p class="fgroup-sub">Common cross-references: Reg. (EC) 1935/2004 (food contact materials); Reg. (EC) 1907/2006 REACH; Reg. (EC) 1272/2008 CLP; Reg. (EU) 2023/1542 (batteries); Dir. 2009/48/EC (toy safety); Reg. (EU) 2017/745/746 (medical devices); Dir. (EU) 2019/904 (single-use plastics).</p>
+      <div class="field"><label>Other applicable EU legislation (if any)</label>
+        <textarea data-f="otherLegislation" placeholder="e.g. Regulation (EC) 1935/2004 on materials in contact with food">${esc(d.otherLegislation)}</textarea>
+      </div>
+    </div>
+
+    <div class="fgroup">
+      <p class="fgroup-title">Annex II — Recyclability &amp; recycled-content metrics</p>
+      <p class="fgroup-sub">Art. 6(4) recyclability grade, Art. 7 recycled-content share, and Art. 24 empty-space ratio.</p>
+      <div class="field">
+        <label>Recyclability performance grade</label>
+        <select data-f="recyclabilityGrade">
+          ${RECYCLABILITY_GRADES.map(g=>`<option value="${esc(g)}" ${d.recyclabilityGrade===g?"selected":""}>${esc(g)}</option>`).join("")}
+        </select>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Recyclable share (% by weight)</label><input type="text" data-f="recyclablePercent" placeholder="e.g. 92" value="${esc(d.recyclablePercent)}"></div>
+        <div class="field"><label>Empty space ratio (%, Art. 24)</label><input type="text" data-f="emptySpaceRatio" placeholder="e.g. 35" value="${esc(d.emptySpaceRatio)}"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Recycled content (%, Art. 7)</label><input type="text" data-f="recycledContentPercent" placeholder="e.g. 30" value="${esc(d.recycledContentPercent)}"></div>
+        <div class="field"><label>Applicable target year</label>
+          <select data-f="recycledContentTargetYear">
+            ${RECYCLED_CONTENT_TARGET_YEARS.map(y=>`<option value="${esc(y)}" ${d.recycledContentTargetYear===y?"selected":""}>${esc(y)}</option>`).join("")}
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="fgroup">
+      <p class="fgroup-title">Annex VIII No. 6 — Applied sustainability requirements</p>
+      <p class="fgroup-sub">Set the status for each article and note where the evidence sits in your technical documentation.</p>
+      <div id="articles-list">${articlesFormHTML(d)}</div>
+    </div>
+
+    <div class="fgroup">
+      <p class="fgroup-title">Reuse, deposit-return &amp; restricted formats</p>
+      <div class="field">
+        <label>Re-use target category (Art. 29)</label>
+        <select data-f="reuseTargetCategory">
+          ${REUSE_TARGET_CATEGORIES.map(c=>`<option value="${esc(c)}" ${d.reuseTargetCategory===c?"selected":""}>${esc(c)}</option>`).join("")}
+        </select>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Reuse system name</label><input type="text" data-f="reuseSystemName" value="${esc(d.reuseSystemName)}"></div>
+        <div class="field"><label>Reuse system operator</label><input type="text" data-f="reuseSystemOperator" value="${esc(d.reuseSystemOperator)}"></div>
+      </div>
+      <div class="field">
+        <label>Deposit and return system (Art. 50)</label>
+        <select data-f="depositReturnApplicable">
+          ${DEPOSIT_RETURN_OPTIONS.map(o=>`<option value="${esc(o)}" ${d.depositReturnApplicable===o?"selected":""}>${esc(o)}</option>`).join("")}
+        </select>
+      </div>
+      <div class="field">
+        <label>Annex V restricted-format check (Art. 25)</label>
+        <select data-f="annexVFormatStatus">
+          ${ANNEX_V_STATUS_OPTIONS.map(o=>`<option value="${esc(o)}" ${d.annexVFormatStatus===o?"selected":""}>${esc(o)}</option>`).join("")}
+        </select>
+      </div>
+      <div class="field"><label>Exemption reason (if applicable)</label><textarea data-f="annexVExemptionReason" placeholder="e.g. micro-enterprise derogation, Art. 25(4)">${esc(d.annexVExemptionReason)}</textarea></div>
+    </div>
+
+    <div class="fgroup">
+      <p class="fgroup-title">Extended Producer Responsibility &amp; digital marking</p>
+      <div class="field"><label>EPR producer registration number(s)</label><input type="text" data-f="eprRegistrationNo" value="${esc(d.eprRegistrationNo)}"></div>
+      <div class="field"><label>Member States registered (Art. 44–47)</label><textarea data-f="eprMemberStates" placeholder="e.g. DE, FR, IT">${esc(d.eprMemberStates)}</textarea></div>
+      <div class="field"><label>EU authorised representative (Art. 45, non-EU manufacturers)</label><input type="text" data-f="eprAuthorisedRep" value="${esc(d.eprAuthorisedRep)}"></div>
+      <div class="field"><label>Digital data carrier reference (Art. 13 — QR / DPP URL)</label><input type="text" data-f="digitalMarkingRef" placeholder="https://…" value="${esc(d.digitalMarkingRef)}"></div>
+    </div>
+
+    <div class="fgroup">
+      <p class="fgroup-title">Remarks &amp; physical details</p>
+      <div class="field"><label>Remarks on exemptions / non-applicability</label><textarea data-f="remarks">${esc(d.remarks)}</textarea></div>
+      <div class="field-row">
+        <div class="field"><label>Dimensions (H × W × D)</label><input type="text" data-f="dimensions" value="${esc(d.dimensions)}"></div>
+        <div class="field"><label>Total weight (g)</label><input type="text" data-f="totalWeight" value="${esc(d.totalWeight)}"></div>
+      </div>
+      <div class="field"><label>Main material(s)</label><input type="text" data-f="mainMaterials" value="${esc(d.mainMaterials)}"></div>
+      <div class="field"><label>Packaging components</label><textarea data-f="components">${esc(d.components)}</textarea></div>
+      <div class="field"><label>Filled products (item no. / SKU, if applicable)</label><input type="text" data-f="filledProducts" value="${esc(d.filledProducts)}"></div>
+    </div>
+
+    <div class="fgroup">
+      <p class="fgroup-title">Applied standards and specifications</p>
+      <div id="standards-list">${standardsFormHTML(d)}</div>
+      <button class="btn ghost small" id="btn-add-standard" type="button">+ Add standard / procedure</button>
+    </div>
+
+    <div class="fgroup">
+      <p class="fgroup-title">Annex VIII No. 7 — Involvement of a notified body</p>
+      <label class="check-inline" style="margin-bottom:10px;">
+        <input type="checkbox" id="notified-toggle" ${d.notifiedBodyApplies?"checked":""}>
+        This packaging is subject to other EU legislation requiring a notified body
+      </label>
+      <div id="notified-fields" style="${d.notifiedBodyApplies?"":"display:none;"}">
+        <div class="field"><label>Notified body — name, address, ID</label><input type="text" data-f="notifiedBodyName" value="${esc(d.notifiedBodyName)}"></div>
+        <div class="field"><label>Description of their action</label><textarea data-f="notifiedBodyAction">${esc(d.notifiedBodyAction)}</textarea></div>
+        <div class="field"><label>Certificate(s) issued</label><textarea data-f="certificatesIssued">${esc(d.certificatesIssued)}</textarea></div>
+      </div>
+    </div>
+
+    <div class="fgroup">
+      <p class="fgroup-title">Annex VIII No. 8 — Signature</p>
+      <div class="field-row">
+        <div class="field"><label>Place of issue</label><input type="text" data-f="placeOfIssue" value="${esc(d.placeOfIssue)}"></div>
+        <div class="field"><label>Date of issue</label><input type="date" data-f="dateOfIssue" value="${esc(d.dateOfIssue)}"></div>
+      </div>
+      <div class="field"><label>Name (for and on behalf of)</label><input type="text" data-f="signatoryName" value="${esc(d.signatoryName)}"></div>
+      <div class="field"><label>Function / position</label><input type="text" data-f="signatoryFunction" placeholder="e.g. Head of Packaging Compliance" value="${esc(d.signatoryFunction)}"></div>
+      <label class="check-inline"><input type="checkbox" id="stamp-toggle" ${d.includeStamp?"checked":""}> Include company stamp placeholder</label>
+    </div>
+  `;
+}
+
+function articlesFormHTML(d){
+  return REQUIRED_ARTICLES.map((a, i)=>{
+    const row = d.articles[i] || { status:"pending", tdRef:"" };
+    const opts = [`<option value="pending" ${row.status==="pending"?"selected":""}>Pending review</option>`,
+      a.opts.includes("conform") ? `<option value="conform" ${row.status==="conform"?"selected":""}>Conform</option>` : "",
+      a.opts.includes("na") ? `<option value="na" ${row.status==="na"?"selected":""}>Not applicable</option>` : ""].join("");
+    return `
+      <div class="art-row">
+        <div class="art-row-top"><span class="art-code">${a.code}</span></div>
+        <div class="art-req">${esc(a.req)}</div>
+        <div class="art-controls">
+          <select data-art-idx="${i}" data-art-prop="status">${opts}</select>
+          <input type="text" data-art-idx="${i}" data-art-prop="tdRef" placeholder="TD ref." value="${esc(row.tdRef)}">
+        </div>
+      </div>`;
+  }).join("");
+}
+
+function standardsFormHTML(d){
+  if(!d.standards.length) return `<p class="muted-small" style="margin:0 0 10px;">No standards added yet.</p>`;
+  return d.standards.map((s,i)=>`
+    <div class="std-row">
+      <select data-std-idx="${i}" data-std-prop="type">
+        <option value="Fully applied" ${s.type==="Fully applied"?"selected":""}>Fully applied</option>
+        <option value="Partially applied" ${s.type==="Partially applied"?"selected":""}>Partially applied</option>
+        <option value="Internal procedure" ${s.type==="Internal procedure"?"selected":""}>Internal procedure</option>
+      </select>
+      <input type="text" data-std-idx="${i}" data-std-prop="standard" placeholder="e.g. EN 13428:2004" value="${esc(s.standard)}">
+      <button class="icon-btn" data-std-remove="${i}" type="button" title="Remove">✕</button>
+    </div>
+  `).join("");
+}
+
+function renderForm(){
+  document.getElementById("doc-form").innerHTML = formHTML(state.doc);
+  document.getElementById("btn-add-standard").addEventListener("click", ()=>{
+    state.doc.standards.push({ type:"Fully applied", standard:"" });
+    document.getElementById("standards-list").innerHTML = standardsFormHTML(state.doc);
+    renderPreview();
+  });
+  document.getElementById("notified-toggle").addEventListener("change", (e)=>{
+    state.doc.notifiedBodyApplies = e.target.checked;
+    document.getElementById("notified-fields").style.display = e.target.checked ? "" : "none";
+    renderPreview();
+  });
+  document.getElementById("stamp-toggle").addEventListener("change", (e)=>{
+    state.doc.includeStamp = e.target.checked;
+    renderPreview();
+  });
+}
+
+/* Event delegation for the whole form: text fields, radios, article rows, standard rows */
+document.getElementById("doc-form").addEventListener("input", handleFormInput);
+document.getElementById("doc-form").addEventListener("change", handleFormInput);
+document.getElementById("doc-form").addEventListener("click", (e)=>{
+  const rm = e.target.getAttribute && e.target.getAttribute("data-std-remove");
+  if(rm !== null && rm !== undefined){
+    state.doc.standards.splice(Number(rm), 1);
+    document.getElementById("standards-list").innerHTML = standardsFormHTML(state.doc);
+    renderPreview();
+  }
+});
+function handleFormInput(e){
+  const t = e.target;
+  if(t.dataset.f){
+    state.doc[t.dataset.f] = t.value;
+    renderPreview();
+    return;
+  }
+  if(t.name === "typeOfUse" && t.checked){ state.doc.typeOfUse = t.value; renderPreview(); return; }
+  if(t.name === "foodContact" && t.checked){ state.doc.foodContact = t.value; renderPreview(); return; }
+  if(t.dataset.artIdx !== undefined){
+    const i = Number(t.dataset.artIdx), prop = t.dataset.artProp;
+    state.doc.articles[i][prop] = t.value;
+    renderPreview();
+    return;
+  }
+  if(t.dataset.stdIdx !== undefined){
+    const i = Number(t.dataset.stdIdx), prop = t.dataset.stdProp;
+    state.doc.standards[i][prop] = t.value;
+    renderPreview();
+    return;
+  }
+}
+
+/* ============================================================
+   GENERATE TAB — PREVIEW (paper document)
+   ============================================================ */
+function statusTag(status){
+  if(status==="conform") return `<span class="tag conform">Conform</span>`;
+  if(status==="na") return `<span class="tag na">Not applicable</span>`;
+  return `<span class="tag pending">Pending</span>`;
+}
+
+function renderPreview(){
+  const d = state.doc;
+  const html = `
+    <div class="doc-page">
+      <div class="doc-masthead">
+        <div>
+          <h1>EU Declaration of Conformity — PPWR</h1>
+          <div class="sub">Self-declaration of the Manufacturer pursuant to Article 39 and Annex VIII · Regulation (EU) 2025/40</div>
+        </div>
+        <div class="pageno">Page 1 / 5</div>
+      </div>
+      <div class="doc-metabar">
+        <div><span>Document no.</span>${esc(d.documentNo) || "—"}</div>
+        <div><span>Issue date</span>${fmtDate(d.issueDate)}</div>
+        <div><span>Revision</span>${esc(d.revision) || "—"}</div>
+        <div><span>Manufacturer</span>${esc(d.companyName) || "—"}</div>
+      </div>
+
+      <div class="doc-sec">
+        <div class="doc-sec-h">Annex VIII No. 1 — Description of packaging</div>
+        <div class="doc-row"><div class="k">Trade designation</div><div class="v">${esc(d.tradeDesignation) || "—"}</div></div>
+        <div class="doc-row"><div class="k">Internal article / SKU number</div><div class="v">${esc(d.sku) || "—"}</div></div>
+      </div>
+
+      <div class="doc-sec">
+        <div class="doc-sec-h">Annex VIII No. 2 — Issuer</div>
+        <div class="doc-row"><div class="k">Full company name</div><div class="v">${esc(d.companyName) || "—"}</div></div>
+        <div class="doc-row"><div class="k">Registered address</div><div class="v">${esc(d.registeredAddress) || "—"}</div></div>
+        <div class="doc-row"><div class="k">Commercial register / VAT ID</div><div class="v">${esc(d.vatId) || "—"}</div></div>
+        <div class="doc-row"><div class="k">Contact</div><div class="v">${esc(d.contactEmail) || "—"}${d.contactPhone ? " · " + esc(d.contactPhone) : ""}</div></div>
+        ${d.nonEuName ? `<div class="doc-row"><div class="k">Manufacturer outside the EU</div><div class="v">${esc(d.nonEuName)}${d.nonEuAddress? " — " + esc(d.nonEuAddress):""}</div></div>` : ""}
+      </div>
+
+      <div class="doc-sec">
+        <div class="doc-sec-h">Annex VIII No. 3 — Statement of sole responsibility</div>
+        <div class="doc-statement">${esc(d.companyName) || "[Name of the issuer]"} declares under sole responsibility that the packaging described above meets the requirements of Regulation (EU) 2025/40 of the European Parliament and of the Council on packaging and packaging waste.</div>
+      </div>
+    </div>
+
+    <div class="doc-page">
+      <div class="doc-masthead">
+        <div><h1>EU Declaration of Conformity — PPWR</h1><div class="sub">Regulation (EU) 2025/40 · Annex VIII</div></div>
+        <div class="pageno">Page 2 / 5</div>
+      </div>
+
+      <div class="doc-sec">
+        <div class="doc-sec-h">Annex VIII No. 4 — Subject of the declaration</div>
+        <div class="doc-row"><div class="k">Trade designation</div><div class="v">${esc(d.tradeDesignation) || "—"}</div></div>
+        <div class="doc-row"><div class="k">Type of packaging (Art. 3)</div><div class="v">${esc(d.packagingType)}</div></div>
+        <div class="doc-row"><div class="k">Type of use</div><div class="v">${esc(d.typeOfUse)}</div></div>
+        <div class="doc-row"><div class="k">Food contact</div><div class="v">${esc(d.foodContact)}</div></div>
+      </div>
+
+      <div class="doc-sec">
+        <div class="doc-sec-h">Annex VIII No. 5 — Applied harmonisation legislation</div>
+        <div class="doc-row"><div class="k">Other applicable EU legislation</div><div class="v">${esc(d.otherLegislation) || "—"}</div></div>
+      </div>
+
+      <div class="doc-sec">
+        <div class="doc-sec-h">Annex II — Recyclability &amp; recycled-content metrics</div>
+        <div class="doc-row"><div class="k">Recyclability performance grade</div><div class="v">${esc(d.recyclabilityGrade) || "—"}</div></div>
+        <div class="doc-row"><div class="k">Recyclable share (% by weight)</div><div class="v">${d.recyclablePercent ? esc(d.recyclablePercent) + " %" : "—"}</div></div>
+        <div class="doc-row"><div class="k">Empty space ratio (Art. 24)</div><div class="v">${d.emptySpaceRatio ? esc(d.emptySpaceRatio) + " %" : "—"}</div></div>
+        <div class="doc-row"><div class="k">Recycled content (Art. 7)</div><div class="v">${d.recycledContentPercent ? esc(d.recycledContentPercent) + " % — " + esc(d.recycledContentTargetYear) : "—"}</div></div>
+      </div>
+
+      <div class="doc-sec">
+        <div class="doc-sec-h">Physical description</div>
+        <div class="doc-row"><div class="k">Dimensions (H × W × D)</div><div class="v">${esc(d.dimensions) || "—"}</div></div>
+        <div class="doc-row"><div class="k">Total weight</div><div class="v">${d.totalWeight ? esc(d.totalWeight) + " g" : "—"}</div></div>
+        <div class="doc-row"><div class="k">Main material(s)</div><div class="v">${esc(d.mainMaterials) || "—"}</div></div>
+        <div class="doc-row"><div class="k">Packaging components</div><div class="v">${esc(d.components) || "—"}</div></div>
+        <div class="doc-row"><div class="k">Filled products</div><div class="v">${esc(d.filledProducts) || "—"}</div></div>
+      </div>
+    </div>
+
+    <div class="doc-page">
+      <div class="doc-masthead">
+        <div><h1>EU Declaration of Conformity — PPWR</h1><div class="sub">Regulation (EU) 2025/40 · Annex VIII</div></div>
+        <div class="pageno">Page 3 / 5</div>
+      </div>
+
+      <div class="doc-sec">
+        <div class="doc-sec-h">Annex VIII No. 6 — Applied sustainability requirements</div>
+        <table class="doc-table">
+          <thead><tr><th>Article</th><th>Requirement</th><th>Status</th><th>TD ref.</th></tr></thead>
+          <tbody>
+            ${REQUIRED_ARTICLES.map((a,i)=>{
+              const row = d.articles[i] || {status:"pending", tdRef:""};
+              return `<tr><td>${a.code}</td><td>${esc(a.req)}</td><td>${statusTag(row.status)}</td><td>${esc(row.tdRef)||"—"}</td></tr>`;
+            }).join("")}
+          </tbody>
+        </table>
+        ${d.remarks ? `<div class="doc-row" style="margin-top:8px;"><div class="k">Remarks / exemptions</div><div class="v">${esc(d.remarks)}</div></div>` : ""}
+      </div>
+    </div>
+
+    <div class="doc-page">
+      <div class="doc-masthead">
+        <div><h1>EU Declaration of Conformity — PPWR</h1><div class="sub">Regulation (EU) 2025/40 · Annex VIII</div></div>
+        <div class="pageno">Page 4 / 5</div>
+      </div>
+
+      <div class="doc-sec">
+        <div class="doc-sec-h">Reuse, deposit-return &amp; restricted formats</div>
+        <div class="doc-row"><div class="k">Re-use target category (Art. 29)</div><div class="v">${esc(d.reuseTargetCategory) || "—"}</div></div>
+        <div class="doc-row"><div class="k">Reuse system</div><div class="v">${esc(d.reuseSystemName) || "—"}${d.reuseSystemOperator ? " — operated by " + esc(d.reuseSystemOperator) : ""}</div></div>
+        <div class="doc-row"><div class="k">Deposit and return system (Art. 50)</div><div class="v">${esc(d.depositReturnApplicable) || "—"}</div></div>
+        <div class="doc-row"><div class="k">Annex V restricted-format check (Art. 25)</div><div class="v">${esc(d.annexVFormatStatus) || "—"}</div></div>
+        ${d.annexVExemptionReason ? `<div class="doc-row"><div class="k">Exemption reason</div><div class="v">${esc(d.annexVExemptionReason)}</div></div>` : ""}
+      </div>
+
+      <div class="doc-sec">
+        <div class="doc-sec-h">Extended Producer Responsibility &amp; digital marking</div>
+        <div class="doc-row"><div class="k">EPR registration number(s)</div><div class="v">${esc(d.eprRegistrationNo) || "—"}</div></div>
+        <div class="doc-row"><div class="k">Member States registered (Art. 44–47)</div><div class="v">${esc(d.eprMemberStates) || "—"}</div></div>
+        <div class="doc-row"><div class="k">EU authorised representative (Art. 45)</div><div class="v">${esc(d.eprAuthorisedRep) || "—"}</div></div>
+        <div class="doc-row"><div class="k">Digital data carrier (Art. 13)</div><div class="v">${esc(d.digitalMarkingRef) || "—"}</div></div>
+      </div>
+
+      <div class="doc-sec">
+        <div class="doc-sec-h">Applied standards and specifications</div>
+        ${d.standards.length ? `
+          <table class="doc-table">
+            <thead><tr><th style="width:32%">Type</th><th>Standard / procedure</th></tr></thead>
+            <tbody>${d.standards.map(s=>`<tr><td>${esc(s.type)}</td><td>${esc(s.standard)||"—"}</td></tr>`).join("")}</tbody>
+          </table>` : `<div class="muted-small" style="font-family:var(--sans);">No standards listed.</div>`}
+      </div>
+    </div>
+
+    <div class="doc-page">
+      <div class="doc-masthead">
+        <div><h1>EU Declaration of Conformity — PPWR</h1><div class="sub">Regulation (EU) 2025/40 · Annex VIII</div></div>
+        <div class="pageno">Page 5 / 5</div>
+      </div>
+
+      <div class="doc-sec">
+        <div class="doc-sec-h">Annex VIII No. 7 — Involvement of a notified body</div>
+        ${d.notifiedBodyApplies ? `
+          <div class="doc-row"><div class="k">Notified body</div><div class="v">${esc(d.notifiedBodyName) || "—"}</div></div>
+          <div class="doc-row"><div class="k">Description of their action</div><div class="v">${esc(d.notifiedBodyAction) || "—"}</div></div>
+          <div class="doc-row"><div class="k">Certificate(s) issued</div><div class="v">${esc(d.certificatesIssued) || "—"}</div></div>
+        ` : `<div class="doc-row"><div class="v" style="font-family:var(--sans); color:#5B6470;">Not applicable — this packaging is not subject to a separate notified-body assessment.</div></div>`}
+      </div>
+
+      <div class="doc-sec">
+        <div class="doc-sec-h">Annex VIII No. 8 — Signature</div>
+        <div class="doc-row"><div class="k">Place of issue</div><div class="v">${esc(d.placeOfIssue) || "—"}</div></div>
+        <div class="doc-row"><div class="k">Date of issue</div><div class="v">${fmtDate(d.dateOfIssue)}</div></div>
+        <div class="sig-block">
+          <div class="sig-line">${esc(d.signatoryName) || "Name for and on behalf of the manufacturer"}<br>${esc(d.signatoryFunction) || "Function / position"}</div>
+          <div class="sig-line">${d.includeStamp ? "Company stamp" : "Signature"}</div>
+        </div>
+      </div>
+    </div>
+  `;
+  document.getElementById("doc-preview").innerHTML = html;
+  renderCompleteness();
+}
+
+function renderCompleteness(){
+  const d = state.doc;
+  const required = [d.tradeDesignation, d.sku, d.companyName, d.registeredAddress, d.signatoryName];
+  const missing = required.filter(v => !v || !String(v).trim()).length;
+  const chip = document.getElementById("completeness-chip");
+  if(missing === 0){
+    chip.innerHTML = `<span class="badge ok">Ready to save</span>`;
+  } else {
+    chip.innerHTML = `<span class="badge warn">${missing} key field${missing>1?"s":""} still empty</span>`;
+  }
+}
+
+/* ---------- doc actions ---------- */
+document.getElementById("btn-new-doc").addEventListener("click", ()=>{
+  if(confirm("Start a new blank document? Unsaved changes to the current one will be lost.")){
+    state.doc = emptyDoc();
+    renderForm();
+    renderPreview();
+  }
+});
+document.getElementById("btn-save-doc").addEventListener("click", async ()=>{
+  state.doc.updatedAt = Date.now();
+  const idx = state.library.findIndex(x=>x.id === state.doc.id);
+  if(idx >= 0) state.library[idx] = state.doc;
+  else state.library.push(state.doc);
+  const ok = await storageSet("doc-library", state.library, false);
+  const btn = document.getElementById("btn-save-doc");
+  const original = btn.textContent;
+  btn.textContent = ok ? "Saved ✓" : "Save failed";
+  setTimeout(()=>{ btn.textContent = original; }, 1600);
+});
+document.getElementById("btn-print-doc").addEventListener("click", ()=> window.print());
+
+/* ============================================================
+   LIBRARY TAB
+   ============================================================ */
+function renderLibraryTab(){
+  const q = (document.getElementById("library-search").value || "").toLowerCase();
+  const items = state.library.filter(d =>
+    !q || [d.sku, d.tradeDesignation, d.companyName, d.documentNo].join(" ").toLowerCase().includes(q)
+  ).sort((a,b)=> b.updatedAt - a.updatedAt);
+
+  const wrap = document.getElementById("library-table");
+  if(!items.length){
+    wrap.innerHTML = `<div class="empty-state"><div class="big">📄</div>Nothing saved yet. Generate a document and click "Save to library" to see it here.</div>`;
+    return;
+  }
+  wrap.innerHTML = `
+    <table class="data-table">
+      <thead><tr><th>Trade designation</th><th>SKU</th><th>Company</th><th>Document no.</th><th>Updated</th><th></th></tr></thead>
+      <tbody>
+        ${items.map(d=>`
+          <tr>
+            <td>${esc(d.tradeDesignation) || "<span class='muted-small'>Untitled</span>"}</td>
+            <td>${esc(d.sku) || "—"}</td>
+            <td>${esc(d.companyName) || "—"}</td>
+            <td>${esc(d.documentNo)}</td>
+            <td class="muted-small">${fmtDate(d.updatedAt ? new Date(d.updatedAt).toISOString().slice(0,10) : "")}</td>
+            <td class="row-actions">
+              <button class="btn ghost small" data-lib-open="${d.id}">Open</button>
+              <button class="btn ghost small" data-lib-dup="${d.id}">Duplicate</button>
+              <button class="btn ghost small" data-lib-del="${d.id}" style="color:var(--danger);">Delete</button>
+            </td>
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>
+  `;
+  wrap.querySelectorAll("[data-lib-open]").forEach(b=>b.addEventListener("click", ()=>{
+    const doc = state.library.find(x=>x.id === b.dataset.libOpen);
+    if(doc){
+      state.doc = JSON.parse(JSON.stringify(doc));
+      document.querySelector('.nav-btn[data-tab="generate"]').click();
+      renderForm(); renderPreview();
+    }
+  }));
+  wrap.querySelectorAll("[data-lib-dup]").forEach(b=>b.addEventListener("click", async ()=>{
+    const doc = state.library.find(x=>x.id === b.dataset.libDup);
+    if(doc){
+      const copy = JSON.parse(JSON.stringify(doc));
+      copy.id = uid("doc");
+      copy.documentNo = "DOC-" + Date.now().toString().slice(-7);
+      copy.createdAt = Date.now(); copy.updatedAt = Date.now();
+      state.library.push(copy);
+      await storageSet("doc-library", state.library, false);
+      renderLibraryTab();
+    }
+  }));
+  wrap.querySelectorAll("[data-lib-del]").forEach(b=>b.addEventListener("click", async ()=>{
+    if(!confirm("Delete this document from the library? This can't be undone.")) return;
+    state.library = state.library.filter(x=>x.id !== b.dataset.libDel);
+    await storageSet("doc-library", state.library, false);
+    renderLibraryTab();
+  }));
+}
+document.getElementById("library-search").addEventListener("input", renderLibraryTab);
+
+/* ============================================================
+   CUSTOMER REQUESTS TAB
+   ============================================================ */
+function customerStatus(c){
+  if(c.status === "Sent") return { label:"Sent", cls:"ok" };
+  const dleft = daysUntil(c.dueDate);
+  if(c.dueDate && dleft !== null && dleft < 0) return { label:"Overdue", cls:"danger" };
+  if(c.dueDate && dleft !== null && dleft <= 2) return { label:"Due soon", cls:"warn" };
+  return { label:"Open", cls:"warn" };
+}
+
+function customerFormHTML(c){
+  return `
+    <div class="tracker-form">
+      <p class="tracker-form-title">${c.id ? "Edit request" : "New customer request"}</p>
+      <div class="tracker-form-grid">
+        <div class="field"><label>Customer</label><input type="text" id="cf-customer" value="${esc(c.customer||"")}"></div>
+        <div class="field"><label>Packaging / SKU</label><input type="text" id="cf-sku" value="${esc(c.sku||"")}"></div>
+        <div class="field"><label>Assigned to</label><input type="text" id="cf-assigned" value="${esc(c.assigned||"")}"></div>
+      </div>
+      <div class="tracker-form-grid">
+        <div class="field"><label>Date requested</label><input type="date" id="cf-requested" value="${esc(c.requestedDate||todayISO())}"></div>
+        <div class="field"><label>Due date</label><input type="date" id="cf-due" value="${esc(c.dueDate||"")}"></div>
+        <div class="field"><label>Status</label>
+          <select id="cf-status">
+            <option value="Open" ${c.status==="Open"?"selected":""}>Open</option>
+            <option value="Sent" ${c.status==="Sent"?"selected":""}>Sent</option>
+          </select>
+        </div>
+      </div>
+      <div class="field" style="margin-bottom:12px;"><label>Notes</label><textarea id="cf-notes">${esc(c.notes||"")}</textarea></div>
+      ${c.attachments && c.attachments.length ? attachmentListHTML(c.sourceEmailId, c.attachments) : ""}
+      <div class="tracker-form-actions">
+        <button class="btn secondary small" id="cf-cancel">Cancel</button>
+        <button class="btn small" id="cf-save">${c.id ? "Save changes" : "Add request"}</button>
+      </div>
+    </div>
+  `;
+}
+
+function openCustomerForm(existing){
+  const c = existing || { requestedDate: todayISO(), status:"Open" };
+  document.getElementById("customer-form-wrap").innerHTML = customerFormHTML(c);
+  document.getElementById("cf-cancel").addEventListener("click", ()=> document.getElementById("customer-form-wrap").innerHTML = "");
+  document.getElementById("cf-save").addEventListener("click", async ()=>{
+    const record = {
+      ...c,
+      id: c.id || uid("cust"),
+      customer: document.getElementById("cf-customer").value.trim(),
+      sku: document.getElementById("cf-sku").value.trim(),
+      assigned: document.getElementById("cf-assigned").value.trim(),
+      requestedDate: document.getElementById("cf-requested").value,
+      dueDate: document.getElementById("cf-due").value,
+      status: document.getElementById("cf-status").value,
+      sentDate: document.getElementById("cf-status").value === "Sent" ? (c.sentDate || todayISO()) : "",
+      notes: document.getElementById("cf-notes").value.trim(),
+    };
+    if(!record.customer){ alert("Please enter a customer name."); return; }
+    const idx = state.customers.findIndex(x=>x.id === record.id);
+    if(idx>=0) state.customers[idx] = record; else state.customers.push(record);
+    await storageSet("customer-requests", state.customers, false);
+    document.getElementById("customer-form-wrap").innerHTML = "";
+    renderCustomerTab();
+  });
+}
+document.getElementById("btn-add-customer").addEventListener("click", ()=> openCustomerForm(null));
+
+function renderCustomerTab(){
+  const q = (document.getElementById("customer-search").value || "").toLowerCase();
+  const items = state.customers.filter(c => !q || [c.customer,c.sku].join(" ").toLowerCase().includes(q))
+    .sort((a,b)=> (a.dueDate||"9999").localeCompare(b.dueDate||"9999"));
+  const wrap = document.getElementById("customer-table");
+  if(!items.length){
+    wrap.innerHTML = `<div class="empty-state"><div class="big">📬</div>No customer requests logged yet.</div>`;
+    return;
+  }
+  wrap.innerHTML = `
+    <table class="data-table">
+      <thead><tr><th>Customer</th><th>Packaging / SKU</th><th>Requested</th><th>Due</th><th>Status</th><th>Assigned</th><th>Notes</th><th>Files</th><th></th></tr></thead>
+      <tbody>
+        ${items.map(c=>{
+          const st = customerStatus(c);
+          return `<tr>
+            <td>${esc(c.customer)}</td>
+            <td>${esc(c.sku)||"—"}</td>
+            <td class="muted-small">${fmtDate(c.requestedDate)}</td>
+            <td class="muted-small">${fmtDate(c.dueDate)}</td>
+            <td><span class="badge ${st.cls}">${st.label}</span></td>
+            <td class="muted-small">${esc(c.assigned)||"—"}</td>
+            <td class="notes-cell">${esc(c.notes)||"—"}</td>
+            <td>${attachmentsCellHTML(c.sourceEmailId, c.attachments)}</td>
+            <td class="row-actions">
+              <button class="btn ghost small" data-c-edit="${c.id}">Edit</button>
+              <button class="btn ghost small" data-c-del="${c.id}" style="color:var(--danger);">Delete</button>
+            </td>
+          </tr>`;
+        }).join("")}
+      </tbody>
+    </table>
+  `;
+  wrap.querySelectorAll("[data-c-edit]").forEach(b=>b.addEventListener("click", ()=>{
+    openCustomerForm(state.customers.find(x=>x.id===b.dataset.cEdit));
+  }));
+  wrap.querySelectorAll("[data-c-del]").forEach(b=>b.addEventListener("click", async ()=>{
+    if(!confirm("Delete this request?")) return;
+    state.customers = state.customers.filter(x=>x.id!==b.dataset.cDel);
+    await storageSet("customer-requests", state.customers, false);
+    renderCustomerTab();
+  }));
+}
+document.getElementById("customer-search").addEventListener("input", renderCustomerTab);
+document.getElementById("btn-export-customers").addEventListener("click", ()=>{
+  exportCSV(state.customers, ["customer","sku","requestedDate","dueDate","status","sentDate","assigned","notes"], "customer-requests.csv");
+});
+
+/* ============================================================
+   SUPPLIER TRACKER TAB
+   ============================================================ */
+function supplierBadge(s){
+  if(s.completeness === "Complete") return { label:"Complete", cls:"ok" };
+  if(s.completeness === "Incomplete") return { label:"Incomplete", cls:"warn" };
+  return { label:"Not received", cls:"danger" };
+}
+
+function supplierFormHTML(s){
+  return `
+    <div class="tracker-form">
+      <p class="tracker-form-title">${s.id ? "Edit entry" : "New supplier entry"}</p>
+      <div class="tracker-form-grid">
+        <div class="field"><label>Supplier</label><input type="text" id="sf-supplier" value="${esc(s.supplier||"")}"></div>
+        <div class="field"><label>Document type</label><input type="text" id="sf-doctype" placeholder="e.g. PFAS statement" value="${esc(s.docType||"")}"></div>
+        <div class="field"><label>Related packaging / SKU</label><input type="text" id="sf-sku" value="${esc(s.sku||"")}"></div>
+      </div>
+      <div class="tracker-form-grid">
+        <div class="field"><label>Date received</label><input type="date" id="sf-received" value="${esc(s.receivedDate||"")}"></div>
+        <div class="field"><label>Completeness</label>
+          <select id="sf-completeness">
+            <option value="Not received" ${s.completeness==="Not received"?"selected":""}>Not received</option>
+            <option value="Incomplete" ${s.completeness==="Incomplete"?"selected":""}>Incomplete</option>
+            <option value="Complete" ${s.completeness==="Complete"?"selected":""}>Complete</option>
+          </select>
+          <div class="muted-small" style="margin-top:4px;">There's no separate "verify" step — open the attachment below (if any), then set this once you've checked it yourself.</div>
+        </div>
+        <div class="field"><label>Follow-up date</label><input type="date" id="sf-followup" value="${esc(s.followupDate||"")}"></div>
+      </div>
+      <div class="tracker-form-grid">
+        <div class="field"><label>Contact email <span class="muted-small">(for auto-matching their emails)</span></label><input type="email" id="sf-contact" placeholder="e.g. docs@supplier.com" value="${esc(s.contactEmail||"")}"></div>
+      </div>
+      ${s.attachments && s.attachments.length ? attachmentListHTML(s.sourceEmailId, s.attachments) : ""}
+      <div class="field" style="margin-bottom:12px;"><label>Missing items</label><input type="text" id="sf-missing" value="${esc(s.missing||"")}"></div>
+      <div class="field" style="margin-bottom:12px;"><label>Notes</label><textarea id="sf-notes">${esc(s.notes||"")}</textarea></div>
+      <div class="tracker-form-actions">
+        <button class="btn secondary small" id="sf-cancel">Cancel</button>
+        <button class="btn small" id="sf-save">${s.id ? "Save changes" : "Add entry"}</button>
+      </div>
+    </div>
+  `;
+}
+
+function draftSupplierFollowup(record){
+  const subject = `Follow-up: ${record.docType || "documentation"}${record.sku ? " for " + record.sku : ""}`;
+  const lines = [
+    "Hi,",
+    "",
+    `This is a quick follow-up regarding the ${record.docType || "documentation"}${record.sku ? " for " + record.sku : ""}.`,
+  ];
+  if(record.missing) lines.push("", `Still missing: ${record.missing}`);
+  if(record.notes) lines.push("", `Notes: ${record.notes}`);
+  lines.push("", "Please let us know if you have any questions.", "", "Best regards");
+  return { subject, body: lines.join("\n") };
+}
+
+function openSupplierForm(existing){
+  const s = existing || { completeness:"Not received" };
+  const wasExisting = !!(existing && existing.id);
+  document.getElementById("supplier-form-wrap").innerHTML = supplierFormHTML(s);
+  document.getElementById("sf-cancel").addEventListener("click", ()=> document.getElementById("supplier-form-wrap").innerHTML = "");
+  document.getElementById("sf-save").addEventListener("click", async ()=>{
+    const record = {
+      ...s,
+      id: s.id || uid("sup"),
+      supplier: document.getElementById("sf-supplier").value.trim(),
+      docType: document.getElementById("sf-doctype").value.trim(),
+      sku: document.getElementById("sf-sku").value.trim(),
+      receivedDate: document.getElementById("sf-received").value,
+      completeness: document.getElementById("sf-completeness").value,
+      followupDate: document.getElementById("sf-followup").value,
+      missing: document.getElementById("sf-missing").value.trim(),
+      notes: document.getElementById("sf-notes").value.trim(),
+      contactEmail: document.getElementById("sf-contact").value.trim(),
+    };
+    if(!record.supplier){ alert("Please enter a supplier name."); return; }
+    const idx = state.suppliers.findIndex(x=>x.id === record.id);
+    if(idx>=0) state.suppliers[idx] = record; else state.suppliers.push(record);
+    await storageSet("supplier-tracker", state.suppliers, false);
+    document.getElementById("supplier-form-wrap").innerHTML = "";
+    renderSupplierTab();
+
+    if(wasExisting && record.contactEmail){
+      const draft = draftSupplierFollowup(record);
+      const preview = `Send a follow-up email to ${record.supplier} (${record.contactEmail})?\n\nSubject: ${draft.subject}\n\n${draft.body}`;
+      if(confirm(preview)){
+        try{
+          const r = await fetch("/api/email/notify-supplier", { method:"POST", headers:{"Content-Type":"application/json"},
+            body: JSON.stringify({ supplierId: record.id, subject: draft.subject, body: draft.body }) });
+          const d = await r.json();
+          if(!r.ok){ alert(d.error || "Could not send the follow-up email."); }
+          else { state.emailActivity = await storageGet("email-activity", [], false); }
+        }catch(err){
+          alert("Could not send the follow-up email: " + err.message);
+        }
+      }
+    }
+  });
+}
+document.getElementById("btn-add-supplier").addEventListener("click", ()=> openSupplierForm(null));
+
+function attachmentsCellHTML(sourceEmailId, attachments){
+  if(!attachments || !attachments.length || !sourceEmailId) return "—";
+  return attachments.map(a=>
+    `<a href="/api/email/attachment?emailId=${encodeURIComponent(sourceEmailId)}&file=${encodeURIComponent(a.savedAs)}" target="_blank" rel="noopener" title="${esc(a.filename)}" style="margin-right:6px; text-decoration:none;">📎</a>`
+  ).join("");
+}
+
+function renderSupplierTab(){
+  const q = (document.getElementById("supplier-search").value || "").toLowerCase();
+  const items = state.suppliers.filter(s => !q || [s.supplier,s.sku].join(" ").toLowerCase().includes(q))
+    .sort((a,b)=> (a.followupDate||"9999").localeCompare(b.followupDate||"9999"));
+  const wrap = document.getElementById("supplier-table");
+  if(!items.length){
+    wrap.innerHTML = `<div class="empty-state"><div class="big">📦</div>No supplier documentation logged yet.</div>`;
+    return;
+  }
+  wrap.innerHTML = `
+    <table class="data-table">
+      <thead><tr><th>Supplier</th><th>Document type</th><th>SKU</th><th>Received</th><th>Status</th><th>Missing</th><th>Follow-up</th><th>Files</th><th></th></tr></thead>
+      <tbody>
+        ${items.map(s=>{
+          const b = supplierBadge(s);
+          return `<tr>
+            <td>${esc(s.supplier)}</td>
+            <td class="muted-small">${esc(s.docType)||"—"}</td>
+            <td class="muted-small">${esc(s.sku)||"—"}</td>
+            <td class="muted-small">${fmtDate(s.receivedDate)}</td>
+            <td><span class="badge ${b.cls}">${b.label}</span></td>
+            <td class="notes-cell">${esc(s.missing)||"—"}</td>
+            <td class="muted-small">${fmtDate(s.followupDate)}</td>
+            <td>${attachmentsCellHTML(s.sourceEmailId, s.attachments)}</td>
+            <td class="row-actions">
+              <button class="btn ghost small" data-s-edit="${s.id}">Edit</button>
+              <button class="btn ghost small" data-s-del="${s.id}" style="color:var(--danger);">Delete</button>
+            </td>
+          </tr>`;
+        }).join("")}
+      </tbody>
+    </table>
+  `;
+  wrap.querySelectorAll("[data-s-edit]").forEach(b=>b.addEventListener("click", ()=>{
+    openSupplierForm(state.suppliers.find(x=>x.id===b.dataset.sEdit));
+  }));
+  wrap.querySelectorAll("[data-s-del]").forEach(b=>b.addEventListener("click", async ()=>{
+    if(!confirm("Delete this entry?")) return;
+    state.suppliers = state.suppliers.filter(x=>x.id!==b.dataset.sDel);
+    await storageSet("supplier-tracker", state.suppliers, false);
+    renderSupplierTab();
+  }));
+}
+document.getElementById("supplier-search").addEventListener("input", renderSupplierTab);
+document.getElementById("btn-export-suppliers").addEventListener("click", ()=>{
+  exportCSV(state.suppliers, ["supplier","docType","sku","receivedDate","completeness","missing","followupDate","notes"], "supplier-tracker.csv");
+});
+
+/* ---------- CSV export ---------- */
+function exportCSV(rows, cols, filename){
+  if(!rows.length){ alert("Nothing to export yet."); return; }
+  const esc2 = v => `"${String(v==null?"":v).replace(/"/g,'""')}"`;
+  const lines = [cols.join(",")].concat(rows.map(r => cols.map(c=>esc2(r[c])).join(",")));
+  const blob = new Blob([lines.join("\n")], { type:"text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
+
+/* ============================================================
+   EMAIL INBOX TAB
+   ============================================================ */
+function classificationBadge(c){
+  if(c === "routine") return `<span class="badge ok">Routine</span>`;
+  if(c === "needs_review") return `<span class="badge warn">Needs response</span>`;
+  if(c === "supplier_logged") return `<span class="badge info">Supplier update</span>`;
+  return `<span class="badge muted">Not PPWR-related</span>`;
+}
+function emailStatusBadge(s){
+  const map = {
+    new: { label:"New", cls:"warn" },
+    auto_replied: { label:"Auto-replied", cls:"ok" },
+    replied: { label:"Replied", cls:"ok" },
+    auto_send_failed: { label:"Auto-send failed", cls:"danger" },
+    dismissed: { label:"Dismissed", cls:"muted" },
+    logged: { label:"Logged to Supplier Tracker", cls:"info" },
+  };
+  const m = map[s] || { label:s, cls:"muted" };
+  return `<span class="badge ${m.cls}">${m.label}</span>`;
+}
+function fmtEmailDate(v){
+  if(!v) return "—";
+  try{ return new Date(v).toLocaleString(); }catch(e){ return String(v); }
+}
+
+async function loadEmailSettings(){
+  try{
+    const r = await fetch("/api/email/settings");
+    if(!r.ok) return null;
+    const d = await r.json();
+    return d.settings;
+  }catch(e){ return null; }
+}
+
+function emailSettingsFormHTML(s){
+  s = s || {};
+  return `
+    <div class="settings-grid">
+      <div class="field"><label>IMAP host</label><input type="text" id="es-imap-host" placeholder="imap.example.com" value="${esc(s.imapHost||"")}"></div>
+      <div class="field"><label>IMAP port</label><input type="number" id="es-imap-port" value="${esc(s.imapPort||993)}"></div>
+      <div class="field"><label>SMTP host</label><input type="text" id="es-smtp-host" placeholder="smtp.example.com" value="${esc(s.smtpHost||"")}"></div>
+      <div class="field"><label>SMTP port</label><input type="number" id="es-smtp-port" value="${esc(s.smtpPort||587)}"></div>
+      <div class="field"><label>Username</label><input type="text" id="es-username" placeholder="you@example.com" value="${esc(s.username||"")}"></div>
+      <div class="field"><label>Password / app password</label><input type="password" id="es-password" placeholder="${s.password==='__saved__'?'•••••• (saved — leave blank to keep)':''}" value=""></div>
+      <div class="field"><label>IMAP security</label>
+        <select id="es-security">
+          <option value="ssl" ${(!s.security||s.security==='ssl')?'selected':''}>SSL (usually port 993)</option>
+          <option value="starttls" ${s.security==='starttls'?'selected':''}>STARTTLS (usually port 143)</option>
+        </select>
+      </div>
+      <div class="field"><label>SMTP security</label>
+        <select id="es-smtp-security">
+          <option value="starttls" ${(!s.smtpSecurity||s.smtpSecurity==='starttls')?'selected':''}>STARTTLS (usually port 587)</option>
+          <option value="ssl" ${s.smtpSecurity==='ssl'?'selected':''}>SSL (usually port 465)</option>
+        </select>
+      </div>
+      <div class="field"><label>IMAP folder</label><input type="text" id="es-folder" value="${esc(s.imapFolder||'INBOX')}"></div>
+      <div class="field"><label>Look back (days)</label><input type="number" id="es-lookback" value="${esc(s.lookbackDays||14)}"></div>
+      <div class="field"><label>"From" display name</label><input type="text" id="es-from-name" value="${esc(s.fromName||"")}"></div>
+      <div class="field"><label>Reply-To override (optional)</label><input type="email" id="es-reply-to" value="${esc(s.replyTo||"")}"></div>
+    </div>
+    <div class="field" style="margin-top:12px;">
+      <label style="display:flex; align-items:center; gap:8px;">
+        <input type="checkbox" id="es-autosend" ${s.autoSendEnabled?'checked':''}>
+        Auto-send replies for simple, template-matched requests (everything else is drafted for your review)
+      </label>
+    </div>
+    <div class="settings-note">
+      Credentials are stored in plain text in this app's local <code>data.json</code>, the same way the rest of your data is — not encrypted. Use an app-specific password where your provider offers one, and be careful about where you copy this folder. Auto-send only fires when a message clearly matches an existing document in your library and reads like a simple "please send the DoC" request; anything less certain is left as a draft for you to send yourself.
+    </div>
+    <div class="tracker-form-actions" style="margin-top:14px;">
+      <button class="btn secondary small" id="es-test">Test connection</button>
+      <button class="btn small" id="es-save">Save settings</button>
+    </div>
+    <div id="es-test-result"></div>
+  `;
+}
+
+function collectEmailSettingsForm(){
+  return {
+    imapHost: document.getElementById("es-imap-host").value.trim(),
+    imapPort: parseInt(document.getElementById("es-imap-port").value, 10) || 993,
+    smtpHost: document.getElementById("es-smtp-host").value.trim(),
+    smtpPort: parseInt(document.getElementById("es-smtp-port").value, 10) || 587,
+    username: document.getElementById("es-username").value.trim(),
+    password: document.getElementById("es-password").value || "__saved__",
+    security: document.getElementById("es-security").value,
+    smtpSecurity: document.getElementById("es-smtp-security").value,
+    imapFolder: document.getElementById("es-folder").value.trim() || "INBOX",
+    lookbackDays: parseInt(document.getElementById("es-lookback").value, 10) || 14,
+    fromName: document.getElementById("es-from-name").value.trim(),
+    replyTo: document.getElementById("es-reply-to").value.trim(),
+    autoSendEnabled: document.getElementById("es-autosend").checked,
+  };
+}
+
+async function renderEmailSettingsPanel(){
+  const settings = await loadEmailSettings();
+  state.emailSettingsMasked = settings;
+  document.getElementById("email-settings-body").innerHTML = emailSettingsFormHTML(settings);
+  document.getElementById("es-test").addEventListener("click", async ()=>{
+    const cfg = collectEmailSettingsForm();
+    const box = document.getElementById("es-test-result");
+    box.innerHTML = `<div class="test-result">Testing…</div>`;
+    try{
+      const r = await fetch("/api/email/test", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(cfg) });
+      const d = await r.json();
+      box.innerHTML = `
+        <div class="test-result ${d.imap.ok?'ok':'fail'}">IMAP: ${esc(d.imap.message)}</div>
+        <div class="test-result ${d.smtp.ok?'ok':'fail'}">SMTP: ${esc(d.smtp.message)}</div>
+      `;
+    }catch(e){
+      box.innerHTML = `<div class="test-result fail">Test failed: ${esc(e.message)}</div>`;
+    }
+  });
+  document.getElementById("es-save").addEventListener("click", async ()=>{
+    const cfg = collectEmailSettingsForm();
+    if(!cfg.imapHost || !cfg.smtpHost || !cfg.username){
+      alert("Please fill in at least IMAP host, SMTP host and username.");
+      return;
+    }
+    const doSave = async ()=>{
+      const r = await fetch("/api/email/settings", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(cfg) });
+      if(r.ok){
+        await renderEmailSettingsPanel();
+        alert("Mailbox settings saved.");
+      } else {
+        alert("Could not save settings.");
+      }
+    };
+    if(cfg.autoSendEnabled && !(state.emailSettingsMasked && state.emailSettingsMasked.autoSendEnabled)){
+      if(confirm("Auto-send is being turned on. Replies to simple, clearly-matched requests will be sent to customers automatically without you reviewing them first. Everything else still comes to you as a draft. Continue?")){
+        await doSave();
+      }
+    } else {
+      await doSave();
+    }
+  });
+}
+
+document.getElementById("email-settings-toggle").addEventListener("click", ()=>{
+  const body = document.getElementById("email-settings-body");
+  const open = body.style.display !== "none";
+  body.style.display = open ? "none" : "block";
+  document.getElementById("email-settings-caret").textContent = open ? "Show settings ▾" : "Hide settings ▴";
+  if(!open) renderEmailSettingsPanel();
+});
+document.getElementById("btn-email-config").addEventListener("click", ()=>{
+  document.getElementById("email-settings-body").style.display = "block";
+  document.getElementById("email-settings-caret").textContent = "Hide settings ▴";
+  renderEmailSettingsPanel();
+  document.getElementById("email-settings-panel").scrollIntoView({behavior:"smooth", block:"start"});
+});
+
+async function loadEmailData(){
+  state.emailInbox = await storageGet(EMAIL_INBOX_KEY_JS, [], false);
+  state.emailActivity = await storageGet(EMAIL_ACTIVITY_KEY_JS, [], false);
+  updateEmailNavBadge();
+}
+function updateEmailNavBadge(){
+  const n = (state.emailInbox||[]).filter(e=>e.needsResponse && e.status==="new").length;
+  const badge = document.getElementById("email-nav-badge");
+  if(n > 0){ badge.style.display = "inline-block"; badge.textContent = n; }
+  else { badge.style.display = "none"; }
+}
+const EMAIL_INBOX_KEY_JS = "email-inbox";
+const EMAIL_ACTIVITY_KEY_JS = "email-activity";
+
+document.getElementById("btn-email-check").addEventListener("click", async ()=>{
+  const btn = document.getElementById("btn-email-check");
+  const status = document.getElementById("email-check-status");
+  btn.disabled = true;
+  status.textContent = "Checking mailbox…";
+  try{
+    const r = await fetch("/api/email/check", { method:"POST", headers:{"Content-Type":"application/json"}, body:"{}" });
+    const d = await r.json();
+    if(!r.ok){
+      status.textContent = d.error || "Could not check email.";
+    } else {
+      status.textContent = `Found ${d.fetched} new message(s) — ${d.autoReplied} auto-replied, ${d.needsReview} need your review, ${d.notRelevant} not PPWR-related. ${d.newCustomerRequests || 0} added to Customer Requests, ${d.newSupplierEntries || 0} logged to Supplier Tracker.`;
+      await loadEmailData();
+      state.customers = await storageGet("customer-requests", [], false);
+      state.suppliers = await storageGet("supplier-tracker", [], false);
+      renderEmailTable();
+      renderEmailActivity();
+      if(state.tab === "customers") renderCustomerTab();
+      if(state.tab === "suppliers") renderSupplierTab();
+    }
+  }catch(e){
+    status.textContent = "Could not check email: " + e.message;
+  }
+  btn.disabled = false;
+});
+
+document.getElementById("email-search").addEventListener("input", renderEmailTable);
+document.getElementById("email-show-all").addEventListener("change", renderEmailTable);
+
+function renderEmailTable(){
+  const q = (document.getElementById("email-search").value || "").toLowerCase();
+  const showAll = document.getElementById("email-show-all").checked;
+  let items = (state.emailInbox||[]).filter(e => showAll || e.classification !== "not_relevant");
+  if(q) items = items.filter(e => [e.fromName,e.fromAddr,e.subject].join(" ").toLowerCase().includes(q));
+  items = items.slice().sort((a,b)=> (b.fetchedAt||0) - (a.fetchedAt||0));
+  const wrap = document.getElementById("email-table");
+  if(!items.length){
+    wrap.innerHTML = `<div class="empty-state"><div class="big">📧</div>No emails yet. Configure your mailbox above, then click "Check for new emails".</div>`;
+    updateEmailNavBadge();
+    return;
+  }
+  wrap.innerHTML = `
+    <table class="data-table">
+      <thead><tr><th>From</th><th>Subject</th><th>Received</th><th>Type</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        ${items.map(e=>`
+          <tr>
+            <td>${esc(e.fromName || e.fromAddr)}<div class="muted-small">${esc(e.fromAddr)}</div></td>
+            <td>${esc(e.subject)}</td>
+            <td class="muted-small">${esc(e.date || "")}</td>
+            <td>${classificationBadge(e.classification)}</td>
+            <td>${emailStatusBadge(e.status)}</td>
+            <td class="row-actions"><button class="btn ghost small" data-e-view="${e.id}">${e.status==='new' ? 'View & reply' : 'View'}</button></td>
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>
+  `;
+  wrap.querySelectorAll("[data-e-view]").forEach(b=>b.addEventListener("click", ()=> openEmailModal(b.dataset.eView)));
+  updateEmailNavBadge();
+}
+
+function fmtFileSize(bytes){
+  if(!bytes) return "";
+  if(bytes < 1024) return bytes + " B";
+  if(bytes < 1024*1024) return (bytes/1024).toFixed(1) + " KB";
+  return (bytes/(1024*1024)).toFixed(1) + " MB";
+}
+function attachmentListHTML(emailId, attachments){
+  if(!attachments || !attachments.length) return "";
+  return `
+    <div style="margin:12px 0;">
+      <label style="font-size:12.5px; font-weight:600; display:block; margin-bottom:6px;">Attachments</label>
+      ${attachments.map(a => `
+        <a href="/api/email/attachment?emailId=${encodeURIComponent(emailId)}&file=${encodeURIComponent(a.savedAs)}" target="_blank" rel="noopener"
+           style="display:flex; align-items:center; justify-content:space-between; padding:8px 12px; border:1px solid var(--line); border-radius:8px; margin-bottom:6px; text-decoration:none; color:var(--ink); font-size:12.5px;">
+          <span>📎 ${esc(a.filename)}</span>
+          <span class="muted-small">${fmtFileSize(a.size)}</span>
+        </a>
+      `).join("")}
+    </div>
+  `;
+}
+
+function openEmailModal(id){
+  const e = (state.emailInbox||[]).find(x=>x.id===id);
+  if(!e) return;
+  const backdrop = document.createElement("div");
+  backdrop.className = "modal-backdrop";
+  const isSupplierLogged = e.classification === "supplier_logged";
+  const canReply = !isSupplierLogged && (e.status === "new" || e.status === "auto_send_failed");
+  backdrop.innerHTML = `
+    <div class="modal-box">
+      <h3>${esc(e.subject)}</h3>
+      <div class="email-meta">
+        From ${esc(e.fromName)} &lt;${esc(e.fromAddr)}&gt; · ${esc(e.date||"")}<br>
+        ${classificationBadge(e.classification)} ${emailStatusBadge(e.status)}
+      </div>
+      <div class="email-body-quote">${esc(e.bodyText || "(no message body found)")}</div>
+      ${attachmentListHTML(e.id, e.attachments)}
+      ${isSupplierLogged ? `
+        <div class="settings-note">This came from a supplier already on your Supplier Documentation Tracker, so it was logged there automatically — no reply is drafted here. Open the Supplier Tracker tab to review and update completeness.</div>
+      ` : canReply ? `
+        <label style="font-size:12.5px; font-weight:600;">Draft reply</label>
+        <textarea id="em-reply-text" style="width:100%; min-height:160px; margin-top:6px; padding:10px; border:1px solid var(--line); border-radius:8px;">${esc(e.draftReply||"")}</textarea>
+      ` : `
+        <label style="font-size:12.5px; font-weight:600;">${e.status==='auto_replied'?'Sent automatically':'Sent reply'}</label>
+        <div class="email-body-quote">${esc(e.repliedBody||"")}</div>
+      `}
+      <div class="tracker-form-actions" style="margin-top:14px;">
+        <button class="btn secondary small" id="em-close">Close</button>
+        ${isSupplierLogged ? `<button class="btn small" id="em-goto-suppliers">Go to Supplier Tracker</button>` : ""}
+        ${canReply ? `<button class="btn ghost small" id="em-recheck">Re-check match</button>` : ""}
+        ${canReply ? `<button class="btn small" id="em-send">Send reply</button>` : ""}
+      </div>
+    </div>
+  `;
+  document.body.appendChild(backdrop);
+  backdrop.addEventListener("click", (ev)=>{ if(ev.target === backdrop) backdrop.remove(); });
+  document.getElementById("em-close").addEventListener("click", ()=> backdrop.remove());
+  if(isSupplierLogged){
+    document.getElementById("em-goto-suppliers").addEventListener("click", ()=>{
+      backdrop.remove();
+      document.querySelector('.nav-btn[data-tab="suppliers"]').click();
+    });
+  }
+  if(canReply){
+    document.getElementById("em-recheck").addEventListener("click", async ()=>{
+      const btn = document.getElementById("em-recheck");
+      btn.disabled = true; btn.textContent = "Re-checking…";
+      try{
+        const r = await fetch("/api/email/reclassify", { method:"POST", headers:{"Content-Type":"application/json"},
+          body: JSON.stringify({ emailId: e.id }) });
+        const d = await r.json();
+        if(!r.ok){ alert(d.error || "Could not re-check."); btn.disabled=false; btn.textContent="Re-check match"; return; }
+        backdrop.remove();
+        await loadEmailData();
+        state.customers = await storageGet("customer-requests", [], false);
+        renderEmailTable();
+        renderEmailActivity();
+        if(state.tab === "customers") renderCustomerTab();
+        openEmailModal(e.id);
+      }catch(err){
+        alert("Could not re-check: " + err.message);
+        btn.disabled = false; btn.textContent = "Re-check match";
+      }
+    });
+    document.getElementById("em-send").addEventListener("click", async ()=>{
+      const text = document.getElementById("em-reply-text").value.trim();
+      if(!text){ alert("Reply can't be empty."); return; }
+      if(!confirm(`Send this reply to ${e.fromAddr}?`)) return;
+      const sendBtn = document.getElementById("em-send");
+      sendBtn.disabled = true; sendBtn.textContent = "Sending…";
+      try{
+        const r = await fetch("/api/email/send", { method:"POST", headers:{"Content-Type":"application/json"},
+          body: JSON.stringify({ emailId: e.id, body: text }) });
+        const d = await r.json();
+        if(!r.ok){ alert(d.error || "Send failed."); sendBtn.disabled=false; sendBtn.textContent="Send reply"; return; }
+        backdrop.remove();
+        await loadEmailData();
+        state.customers = await storageGet("customer-requests", [], false);
+        renderEmailTable();
+        renderEmailActivity();
+        if(state.tab === "customers") renderCustomerTab();
+      }catch(err){
+        alert("Send failed: " + err.message);
+        sendBtn.disabled = false; sendBtn.textContent = "Send reply";
+      }
+    });
+  }
+}
+
+function renderEmailActivity(){
+  const wrap = document.getElementById("email-activity-list");
+  const items = (state.emailActivity||[]).slice(0, 15);
+  if(!items.length){ wrap.innerHTML = `<div class="muted-small">No activity yet.</div>`; return; }
+  const typeLabel = { auto_reply:"Auto-replied", manual_reply:"Replied", check:"Checked inbox", supplier_notify:"Supplier follow-up sent" };
+  wrap.innerHTML = items.map(a => `
+    <div style="display:flex; justify-content:space-between; padding:7px 0; border-bottom:1px solid var(--line-soft); font-size:12.5px;">
+      <span>${esc(typeLabel[a.type]||a.type)}${a.to?` — ${esc(a.subject)} to ${esc(a.to)}`:` — ${esc(a.subject)}`}</span>
+      <span class="muted-small">${fmtEmailDate((a.at||0)*1000)}</span>
+    </div>
+  `).join("");
+}
+
+async function renderEmailTab(){
+  if(!state.emailInbox) await loadEmailData();
+  renderEmailTable();
+  renderEmailActivity();
+}
+
+/* ============================================================
+   DASHBOARD TAB
+   ============================================================ */
+function renderDashboard(){
+  const openCust = state.customers.filter(c=>c.status!=="Sent");
+  const overdueCust = openCust.filter(c=> c.dueDate && daysUntil(c.dueDate) < 0);
+  const incompleteSup = state.suppliers.filter(s=>s.completeness!=="Complete");
+  const docsCount = state.library.length;
+
+  document.getElementById("stat-grid").innerHTML = `
+    <div class="stat-card"><div class="stat-num" style="color:var(--accent);">${docsCount}</div><div class="stat-label">Declarations in library</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:var(--warn);">${openCust.length}</div><div class="stat-label">Open customer requests</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:var(--danger);">${overdueCust.length}</div><div class="stat-label">Overdue requests</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:var(--warn);">${incompleteSup.length}</div><div class="stat-label">Supplier docs incomplete</div></div>
+  `;
+
+  const sentCust = state.customers.filter(c=>c.status==="Sent").length;
+  const completeSup = state.suppliers.filter(s=>s.completeness==="Complete").length;
+  const notReceivedSup = state.suppliers.filter(s=>s.completeness==="Not received").length;
+  const totalCust = state.customers.length || 1;
+  const totalSup = state.suppliers.length || 1;
+
+  document.getElementById("dash-bars").innerHTML = barRow("Customer — Sent", sentCust, totalCust, "var(--ok)")
+    + barRow("Customer — Open", openCust.length - overdueCust.length, totalCust, "var(--warn)")
+    + barRow("Customer — Overdue", overdueCust.length, totalCust, "var(--danger)")
+    + barRow("Supplier — Complete", completeSup, totalSup, "var(--ok)")
+    + barRow("Supplier — Incomplete", state.suppliers.filter(s=>s.completeness==="Incomplete").length, totalSup, "var(--warn)")
+    + barRow("Supplier — Not received", notReceivedSup, totalSup, "var(--danger)");
+
+  const activity = []
+    .concat(state.customers.map(c=>({ when:c.requestedDate, text:`Request from ${c.customer || "a customer"}${c.sku?" for "+c.sku:""}`, kind: customerStatus(c).cls })))
+    .concat(state.suppliers.map(s=>({ when:s.receivedDate, text:`${s.supplier || "Supplier"} — ${s.docType || "document"} (${s.completeness})`, kind: supplierBadge(s).cls })))
+    .filter(a=>a.when)
+    .sort((a,b)=> b.when.localeCompare(a.when))
+    .slice(0,8);
+
+  document.getElementById("dash-activity").innerHTML = activity.length ? activity.map(a=>`
+    <div class="activity-item">
+      <div class="activity-dot" style="background:var(--${a.kind==='ok'?'ok':a.kind==='danger'?'danger':'warn'});"></div>
+      <div><div>${esc(a.text)}</div><div class="muted-small">${fmtDate(a.when)}</div></div>
+    </div>
+  `).join("") : `<div class="muted-small">No activity logged yet.</div>`;
+}
+function barRow(label, val, total, color){
+  const pct = Math.round((val/total)*100) || 0;
+  return `<div class="bar-row"><div class="bar-label">${label}</div><div class="bar-track"><div class="bar-fill" style="width:${pct}%; background:${color};"></div></div><div class="bar-count">${val}</div></div>`;
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+async function renderStorageStatus(){
+  const el = document.getElementById("storage-status");
+  const usingBackend = await backendAvailable();
+  if(usingBackend){
+    el.innerHTML = `<span style="color:#8FD3A6;">●</span> Saving to local data file`;
+  } else if(window.storage && typeof window.storage.get === "function"){
+    el.innerHTML = `<span style="color:#8FD3A6;">●</span> Saving to Claude storage`;
+  } else {
+    el.innerHTML = `<span style="color:#E0B15C;">●</span> Saving to this browser only`;
+  }
+}
+
+document.getElementById("btn-backup-export").addEventListener("click", async ()=>{
+  const usingBackend = await backendAvailable();
+  let payload;
+  if(usingBackend){
+    const r = await fetch("/api/backup");
+    payload = await r.json();
+  } else {
+    payload = {
+      "issuer-profile": state.profile,
+      "doc-library": state.library,
+      "customer-requests": state.customers,
+      "supplier-tracker": state.suppliers,
+    };
+  }
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type:"application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `ppwr-compliance-desk-backup-${todayISO()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+document.getElementById("btn-backup-import").addEventListener("click", ()=>{
+  document.getElementById("backup-file-input").click();
+});
+document.getElementById("backup-file-input").addEventListener("change", async (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  try{
+    const text = await file.text();
+    const payload = JSON.parse(text);
+    if(!confirm("Import this backup? It will overwrite your current profile, document library, and trackers.")) return;
+    const usingBackend = await backendAvailable();
+    if(usingBackend){
+      const r = await fetch("/api/restore", {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify(payload)
+      });
+      if(!r.ok) throw new Error("restore failed");
+    } else {
+      await storageSet("issuer-profile", payload["issuer-profile"] ?? null, false);
+      await storageSet("doc-library", payload["doc-library"] ?? [], false);
+      await storageSet("customer-requests", payload["customer-requests"] ?? [], false);
+      await storageSet("supplier-tracker", payload["supplier-tracker"] ?? [], false);
+    }
+    alert("Backup imported. Reloading…");
+    location.reload();
+  }catch(err){
+    console.error(err);
+    alert("Could not import this file — is it a valid backup .json?");
+  }
+  e.target.value = "";
+});
+
+async function init(){
+  state.profile = await storageGet("issuer-profile", null, false);
+  state.library = await storageGet("doc-library", [], false);
+  state.customers = await storageGet("customer-requests", [], false);
+  state.suppliers = await storageGet("supplier-tracker", [], false);
+  state.doc = emptyDoc();
+
+  renderProfileBar();
+  renderForm();
+  renderPreview();
+  renderStorageStatus();
+  await loadEmailData();
+}
+init();
+</script>
+</body>
+</html>

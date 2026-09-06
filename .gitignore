@@ -1,0 +1,5 @@
+data.json 
+data.json.tmp 
+data.json.corrupt-backup 
+attachments/ 
+__pycache__/
